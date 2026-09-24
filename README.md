@@ -9,13 +9,44 @@
 
 ## Executive Summary
 
-This repository contains the performance analysis, source implementations, and empirical benchmark results for a **$4000 \times 4000$ Matrix Multiplication** ($C = A \times B$) across four computing paradigms:
-1. **Sequential CPU Baseline** (Single-threaded C on WSL2 Ubuntu)
-2. **OpenMP Shared-Memory Parallelism** (8 CPU Threads on Multi-core CPU)
-3. **MPI Distributed-Memory Parallelism** (4 Process Ranks across 4 Ubuntu Virtual Machines)
-4. **CUDA GPU Hardware Acceleration** (Massively parallel thread grid on NVIDIA GPU)
+This repository contains the empirical performance analysis, parallel execution models, and source implementations for a **$4000 \times 4000$ Matrix Multiplication** ($C = A \times B$) across four computing paradigms.
 
-All four implementations perform the exact same mathematical workload ($4000 \times 4000$ matrices initialized to $1.0$).
+```mermaid
+flowchart TD
+    subgraph Executive_Summary ["EXECUTIVE SUMMARY BLOCK DIAGRAM"]
+        direction TB
+        Input["Workload Input<br/>4000 x 4000 Matrices A & B (All elements = 1.0)"]
+        
+        subgraph Models ["Parallel Paradigm Evaluation"]
+            direction LR
+            M1["Sequential CPU Baseline<br/>1 Core / 1 Thread<br/>Time: 244.12 s<br/>Speedup: 1.00x"]
+            M2["OpenMP Shared Memory<br/>8 CPU Threads<br/>Time: 30.83 s<br/>Speedup: 7.92x"]
+            M3["MPI Distributed Memory<br/>4 Process Ranks (4 VMs)<br/>Time: 92.98 s<br/>Speedup: 2.63x"]
+            M4["CUDA GPU Parallelism<br/>NVIDIA RTX 4500 Ada<br/>Time: 0.165 s<br/>Speedup: 1479.48x"]
+        end
+        
+        Output["Verification Result<br/>C[0][0] = 4000.00 (Validated Across All 4 Models)"]
+
+        Input --> Models --> Output
+    end
+```
+
+```
++---------------------------------------------------------------------------------------------------+
+|                                EXECUTIVE SUMMARY BLOCK DIAGRAM                                    |
++---------------------------------------------------------------------------------------------------+
+|  INPUT WORKLOAD: 4000 x 4000 Dense Matrix Multiplication (A = 1.0, B = 1.0)                       |
++----------------------------+-----------------------+-----------------------+----------------------+
+| PARADIGM                   | RESOURCES             | EXECUTION TIME (s)    | SPEEDUP FACTOR       |
++----------------------------+-----------------------+-----------------------+----------------------+
+| 1. Sequential CPU          | 1 Core / 1 Thread     | 244.120 s             | 1.00x (Baseline)     |
+| 2. OpenMP (Shared Memory)  | 8 CPU Threads         | 30.830 s              | 7.92x                |
+| 3. MPI (Distributed)       | 4 VMs / Ranks         | 92.980 s              | 2.63x                |
+| 4. CUDA (GPU Hardware)     | 16,000,000 Threads    | 0.165 s               | 1479.48x             |
++----------------------------+-----------------------+-----------------------+----------------------+
+|  VERIFICATION RESULT: C[0][0] = 4000.00 (Deterministic Correctness Verified across All Models)    |
++---------------------------------------------------------------------------------------------------+
+```
 
 ### Key Finding
 
@@ -25,14 +56,49 @@ All four implementations perform the exact same mathematical workload ($4000 \ti
 
 ## Table of Contents
 
-1. [Experiment Objectives](#1-experiment-objectives)
-2. [Theoretical & Architectural Comparison](#2-theoretical--architectural-comparison)
-3. [Workload Specification](#3-workload-specification)
-4. [Source Code Implementations](#4-source-code-implementations)
-5. [Empirical Results & Screenshots](#5-empirical-results--screenshots)
-6. [Performance Comparison Table](#6-performance-comparison-table)
-7. [Technical Analysis & Discussion](#7-technical-analysis--discussion)
-8. [Conclusion & Engineering Takeaways](#8-conclusion--engineering-takeaways)
+1. [Repository Structure](#repository-structure)
+2. [Experiment Objectives](#1-experiment-objectives)
+3. [Theoretical & Architectural Comparison](#2-theoretical--architectural-comparison)
+4. [Workload Specification](#3-workload-specification)
+5. [Source Code Implementations](#4-source-code-implementations)
+6. [Empirical Results & Screenshots](#5-empirical-results--screenshots)
+7. [Performance Comparison & Visualizations](#6-performance-comparison--visualizations)
+8. [Technical Analysis & Discussion](#7-technical-analysis--discussion)
+9. [Conclusion & Engineering Takeaways](#8-conclusion--engineering-takeaways)
+
+---
+
+## Repository Structure
+
+```
+PGC_Lab/
+├── README.md                                           # Master Lab Documentation & Benchmark Report
+├── .gitignore                                          # Git ignore rules for build artifacts & binaries
+├── src/                                                # Source Code Implementations
+│   ├── sequential/
+│   │   └── matrix_sequential.c                         # Sequential Single-threaded C Program
+│   ├── openmp/
+│   │   └── matrix_openmp.c                             # OpenMP Multi-threaded Shared-Memory C Program
+│   ├── mpi/
+│   │   ├── matrix_mpi.c                                # MPI Distributed-Memory Matrix Multiplication C Program
+│   │   └── mpi_send_recv.c                             # MPI Point-to-Point Communication Test C Program
+│   └── cuda/
+│       └── matrix_cuda.cu                              # CUDA GPU Kernel Accelerator Program
+├── images/                                             # Execution Output Screenshots & Charts
+│   ├── performance_comparison_charts.png               # Combined Execution Time & Speedup Chart
+│   ├── execution_time_chart.png                        # Execution Time Comparison Bar Chart
+│   ├── speedup_chart.png                               # Speedup Factor Bar Chart
+│   ├── sequential_result.png                           # Sequential Terminal Execution Screenshot
+│   ├── openmp_htop.png                                 # OpenMP htop Multi-core Thread Monitor Screenshot
+│   ├── mpi_ping.png                                    # MPI 4-VM Network Ping Test Screenshot
+│   ├── mpi_send_recv.png                               # MPI Send/Recv Process Verification Screenshot
+│   └── mpi_result.png                                  # MPI Cluster Execution Output Screenshot
+├── docs/                                               # Reference Lab Manuals
+│   ├── Experiment_1_Lab_Manual.docx                    # Complete Reference Format Manual (.docx)
+│   └── MPI_Matrix_Multiplication_Manual.pdf            # MPI Detailed Setup Manual (.pdf)
+└── scripts/
+    └── generate_charts.py                              # Python Script to regenerate performance charts
+```
 
 ---
 
@@ -117,7 +183,7 @@ CUDA offloads computation from host CPU memory to the GPU device memory via PCIe
 
 ## 4. Source Code Implementations
 
-### 4.1 Sequential C Implementation (`matrix_sequential.c`)
+### 4.1 Sequential C Implementation (`src/sequential/matrix_sequential.c`)
 
 ```c
 #include <stdio.h>
@@ -184,7 +250,7 @@ int main()
 
 ---
 
-### 4.2 OpenMP Shared-Memory C Implementation (`matrix_openmp.c`)
+### 4.2 OpenMP Shared-Memory C Implementation (`src/openmp/matrix_openmp.c`)
 
 ```c
 #include <stdio.h>
@@ -251,7 +317,7 @@ int main()
 
 ---
 
-### 4.3 MPI Distributed-Memory C Implementation (`matrix_mpi.c`)
+### 4.3 MPI Distributed-Memory C Implementation (`src/mpi/matrix_mpi.c`)
 
 ```c
 #include <stdio.h>
@@ -364,7 +430,7 @@ int main(int argc, char *argv[])
 
 ---
 
-### 4.4 CUDA GPU Accelerator CUDA C++ Implementation (`matrix_cuda.cu`)
+### 4.4 CUDA GPU Accelerator CUDA C++ Implementation (`src/cuda/matrix_cuda.cu`)
 
 ```cuda
 #include <stdio.h>
@@ -517,14 +583,28 @@ Distributed calculation across 4 VM ranks computing 1000 rows each. Execution ti
 
 ---
 
-## 6. Performance Comparison Table
+## 6. Performance Comparison & Visualizations
 
-| Model | Architecture | Active Resources | Execution Time (s) | Speedup | Verification $C[0][0]$ |
+### 6.1 Performance Comparison Table
+
+| Model | Architecture | Active Resources | Execution Time (s) | Speedup Factor | Verification $C[0][0]$ |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **Sequential** | Single CPU Core | 1 CPU Thread | `244.120000` | **1.00×** | `4000.00` |
 | **OpenMP** | Shared-Memory Multi-core | 8 CPU Threads | `30.830434` | **7.92×** | `4000.00` |
 | **MPI** | Distributed 4-VM Cluster | 4 Process Ranks | `92.979510` | **2.63×** | `4000.00` |
 | **CUDA** | Massively Parallel GPU | NVIDIA RTX 4500 Ada | `0.165004` | **1479.48×** | `4000.00` |
+
+### 6.2 Empirical Performance Charts
+
+#### Execution Time & Speedup Comparison Graphs
+
+![Performance Comparison Charts](images/performance_comparison_charts.png)
+
+#### Standalone Execution Time Chart
+![Execution Time Chart](images/execution_time_chart.png)
+
+#### Standalone Speedup Factor Chart
+![Speedup Chart](images/speedup_chart.png)
 
 ### Performance Metric Formulas
 $$\text{Speedup} = \frac{T_{\text{Sequential}}}{T_{\text{Parallel}}}$$
