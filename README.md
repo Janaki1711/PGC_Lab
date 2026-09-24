@@ -9,7 +9,7 @@
 
 ## Executive Summary
 
-This repository contains the empirical performance analysis, parallel execution models, and source implementations for a **$4000 \times 4000$ Matrix Multiplication** ($C = A \times B$) across four computing paradigms.
+This repository contains the empirical performance analysis, parallel execution models, and benchmark results for a **$4000 \times 4000$ Matrix Multiplication** ($C = A \times B$) across four computing paradigms: Sequential, OpenMP, MPI, and CUDA.
 
 ```mermaid
 flowchart TD
@@ -31,8 +31,6 @@ flowchart TD
     end
 ```
 
-
-
 ### Key Finding
 
 > **CUDA GPU acceleration achieved an overall execution time of 0.165 seconds (0.146s kernel execution) — representing a 1,479.48× speedup over single-threaded sequential CPU execution (244.12s) and a 186.85× speedup over 8-thread OpenMP shared-memory execution (30.83s).**
@@ -45,13 +43,45 @@ flowchart TD
 2. [Experiment Objectives](#1-experiment-objectives)
 3. [Theoretical & Architectural Comparison](#2-theoretical--architectural-comparison)
 4. [Workload Specification](#3-workload-specification)
-5. [Source Code Implementations](#4-source-code-implementations)
+5. [Source Code References](#4-source-code-references)
 6. [Empirical Results & Screenshots](#5-empirical-results--screenshots)
 7. [Performance Comparison & Visualizations](#6-performance-comparison--visualizations)
 8. [Technical Analysis & Discussion](#7-technical-analysis--discussion)
 9. [Conclusion & Engineering Takeaways](#8-conclusion--engineering-takeaways)
 
 ---
+
+## Repository Structure
+
+```
+PGC_Lab/
+├── README.md                                           # Master Lab Documentation & Benchmark Report
+├── .gitignore                                          # Git ignore rules for build artifacts & binaries
+├── src/                                                # Source Code Implementations
+│   ├── sequential/
+│   │   └── matrix_sequential.c                         # Sequential Single-threaded C Program
+│   ├── openmp/
+│   │   └── matrix_openmp.c                             # OpenMP Multi-threaded Shared-Memory C Program
+│   ├── mpi/
+│   │   ├── matrix_mpi.c                                # MPI Distributed-Memory C Program
+│   │   └── mpi_send_recv.c                             # MPI Point-to-Point Verification C Program
+│   └── cuda/
+│       └── matrix_cuda.cu                              # CUDA GPU Accelerator Program
+├── images/                                             # Screenshots & Performance Charts
+│   ├── performance_comparison_charts.png               # Combined Performance Chart
+│   ├── execution_time_chart.png                        # Execution Time Comparison Chart
+│   ├── speedup_chart.png                               # Speedup Factor Chart
+│   ├── sequential_result.png                           # Sequential Terminal Execution Screenshot
+│   ├── openmp_htop.png                                 # OpenMP htop Thread Monitor Screenshot
+│   ├── mpi_ping.png                                    # MPI 4-VM Network Ping Screenshot
+│   ├── mpi_send_recv.png                               # MPI Send/Recv Verification Screenshot
+│   └── mpi_result.png                                  # MPI Execution Screenshot
+├── docs/                                               # Reference Lab Manuals
+│   ├── Experiment_1_Lab_Manual.docx                    # Complete Reference Manual (.docx)
+│   └── MPI_Matrix_Multiplication_Manual.pdf            # MPI Setup Manual (.pdf)
+└── scripts/
+    └── generate_charts.py                              # Script to generate comparison charts
+```
 
 ---
 
@@ -66,23 +96,29 @@ flowchart TD
 
 ## 2. Theoretical & Architectural Comparison
 
+```mermaid
+flowchart TD
+    subgraph Workload ["Matrix Multiplication (4000 x 4000)"]
+    end
+
+    Workload --> Seq["Sequential CPU<br/>(1 Core, Single Thread)"]
+    Workload --> OMP["OpenMP Shared Memory<br/>(8 CPU Threads)"]
+    Workload --> MPI["MPI Distributed Memory<br/>(4 Process Ranks / 4 VMs)"]
+    Workload --> CUDA["CUDA GPU Parallelism<br/>(16 Million GPU Threads)"]
+
+    Seq --> Res1["Execution Time: 244.12s<br/>Speedup: 1.00x"]
+    OMP --> Res2["Execution Time: 30.83s<br/>Speedup: 7.92x"]
+    MPI --> Res3["Execution Time: 92.98s<br/>Speedup: 2.63x"]
+    CUDA --> Res4["Execution Time: 0.165s<br/>Speedup: 1479.48x"]
+```
+
 ### Architectural Breakdown
 
 #### 1. Sequential CPU Execution
 Execution follows a traditional single-threaded, triple-nested loop ($O(N^3)$ complexity). Instructions run strictly sequentially on a single CPU core without hardware concurrency.
 
 #### 2. OpenMP (Shared Memory)
-OpenMP uses compiler directives (`#pragma omp parallel for`) to fork 8 worker threads sharing a single unified memory address space. Loop iterations are dynamically divided across CPU cores, eliminating inter-process communication overhead.
-
-```
-+-------------------------------------------------------------------+
-|               Shared Virtual Memory Space (Host RAM)              |
-+-------------------------------------------------------------------+
-| Thread 0    | Thread 1    | Thread 2    | ... | Thread 7          |
-+-------------------------------------------------------------------+
-| CPU Core 0  | CPU Core 1  | CPU Core 2  | ... | CPU Core 7        |
-+-------------------------------------------------------------------+
-```
+OpenMP uses compiler directives (`#pragma omp parallel for`) to fork 8 worker threads sharing a single unified memory address space. Loop iterations are dynamically divided across CPU cores.
 
 #### 3. MPI (Distributed Memory)
 MPI operates across disjoint memory address spaces over a virtual network connecting 4 Ubuntu VMs (`master`, `worker1`, `worker2`, `worker3`). 
@@ -90,17 +126,8 @@ MPI operates across disjoint memory address spaces over a virtual network connec
 - **Broadcast**: Matrix $B$ is duplicated to all ranks (`MPI_Bcast`).
 - **Gather**: Computed partial results are assembled back into Matrix $C$ on Rank 0 (`MPI_Gather`).
 
-```
-+---------------+    +---------------+    +---------------+    +---------------+
-|   Master VM   |    |  Worker 1 VM  |    |  Worker 2 VM  |    |  Worker 3 VM  |
-| (Rank 0: 1000)|    | (Rank 1: 1000)|    | (Rank 2: 1000)|    | (Rank 3: 1000)|
-+-------+-------+    +-------+-------+    +-------+-------+    +-------+-------+
-        |                    |                    |                    |
-        +--------------------+--- Virtual NIC ----+--------------------+
-```
-
 #### 4. CUDA (Massively Parallel SIMT)
-CUDA offloads computation from host CPU memory to the GPU device memory via PCIe bus. The computation is structured into a 2D execution grid:
+CUDA offloads computation from host CPU memory to device GPU memory via PCIe bus. The computation is structured into a 2D execution grid:
 - **Grid Configuration**: $250 \times 250 = 62,500$ blocks
 - **Block Configuration**: $16 \times 16 = 256$ threads/block
 - **Total Logical GPU Threads**: $16,000,000$ threads running concurrently.
@@ -118,372 +145,21 @@ CUDA offloads computation from host CPU memory to the GPU device memory via PCIe
 
 ---
 
-## 4. Source Code Implementations
+## 4. Source Code References
 
-### 4.1 Sequential C Implementation (`src/sequential/matrix_sequential.c`)
+All complete source code files are located in the [`src/`](src/) directory:
 
-```c
-#include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
-
-#define N 4000
-
-int main()
-{
-    int i, j, k;
-    double *A, *B, *C;
-    clock_t start, end;
-
-    A = (double *)malloc(N * N * sizeof(double));
-    B = (double *)malloc(N * N * sizeof(double));
-    C = (double *)malloc(N * N * sizeof(double));
-
-    if (A == NULL || B == NULL || C == NULL)
-    {
-        printf("Memory allocation failed\n");
-        return 1;
-    }
-
-    printf("Initializing %d x %d matrices...\n", N, N);
-
-    for (i = 0; i < N; i++)
-    {
-        for (j = 0; j < N; j++)
-        {
-            A[i * N + j] = 1.0;
-            B[i * N + j] = 1.0;
-            C[i * N + j] = 0.0;
-        }
-    }
-
-    start = clock();
-
-    for (i = 0; i < N; i++)
-    {
-        for (j = 0; j < N; j++)
-        {
-            for (k = 0; k < N; k++)
-            {
-                C[i * N + j] += A[i * N + k] * B[k * N + j];
-            }
-        }
-    }
-
-    end = clock();
-
-    printf("\nSequential Matrix Multiplication Completed\n");
-    printf("Matrix Size = %d x %d\n", N, N);
-    printf("Execution Time = %f seconds\n", (double)(end - start) / CLOCKS_PER_SEC);
-    printf("Verification C[0][0] = %.2f\n", C[0]);
-
-    free(A);
-    free(B);
-    free(C);
-
-    return 0;
-}
-```
+| Computing Paradigm | Source File Link | Description / Implementation Highlights |
+| :--- | :--- | :--- |
+| **Sequential CPU** | [`src/sequential/matrix_sequential.c`](src/sequential/matrix_sequential.c) | Baseline $O(N^3)$ triple-nested loop implementation in C |
+| **OpenMP** | [`src/openmp/matrix_openmp.c`](src/openmp/matrix_openmp.c) | `#pragma omp parallel for private(j, k)` shared-memory multi-threading |
+| **MPI Distributed** | [`src/mpi/matrix_mpi.c`](src/mpi/matrix_mpi.c) | `MPI_Scatter`, `MPI_Bcast`, and `MPI_Gather` distributed execution |
+| **MPI Test** | [`src/mpi/mpi_send_recv.c`](src/mpi/mpi_send_recv.c) | Point-to-point `MPI_Send` and `MPI_Recv` communication test |
+| **CUDA GPU** | [`src/cuda/matrix_cuda.cu`](src/cuda/matrix_cuda.cu) | CUDA kernel `matMulKernel<<<grid, block>>>` with 16 million GPU threads |
 
 ---
 
-### 4.2 OpenMP Shared-Memory C Implementation (`src/openmp/matrix_openmp.c`)
-
-```c
-#include <stdio.h>
-#include <stdlib.h>
-#include <omp.h>
-
-#define N 4000
-
-int main()
-{
-    int i, j, k;
-    double *A, *B, *C;
-    double start, end;
-
-    A = (double *)malloc(N * N * sizeof(double));
-    B = (double *)malloc(N * N * sizeof(double));
-    C = (double *)malloc(N * N * sizeof(double));
-
-    if (A == NULL || B == NULL || C == NULL)
-    {
-        printf("Memory allocation failed\n");
-        return 1;
-    }
-
-    for (i = 0; i < N; i++)
-    {
-        for (j = 0; j < N; j++)
-        {
-            A[i * N + j] = 1.0;
-            B[i * N + j] = 1.0;
-            C[i * N + j] = 0.0;
-        }
-    }
-
-    start = omp_get_wtime();
-
-    #pragma omp parallel for private(j, k)
-    for (i = 0; i < N; i++)
-    {
-        for (j = 0; j < N; j++)
-        {
-            for (k = 0; k < N; k++)
-            {
-                C[i * N + j] += A[i * N + k] * B[k * N + j];
-            }
-        }
-    }
-
-    end = omp_get_wtime();
-
-    printf("OpenMP Matrix Multiplication Completed\n");
-    printf("Matrix Size = %d x %d\n", N, N);
-    printf("Number of Threads Used = %d\n", omp_get_max_threads());
-    printf("Execution Time = %f seconds\n", end - start);
-    printf("Verification C[0][0] = %.2f\n", C[0]);
-
-    free(A);
-    free(B);
-    free(C);
-
-    return 0;
-}
-```
-
----
-
-### 4.3 MPI Distributed-Memory C Implementation (`src/mpi/matrix_mpi.c`)
-
-```c
-#include <stdio.h>
-#include <stdlib.h>
-#include <mpi.h>
-#include <unistd.h>
-
-#define N 4000
-
-int main(int argc, char *argv[])
-{
-    int rank, size;
-    int i, j, k;
-    int rows_per_process;
-    char hostname[256];
-
-    double *A = NULL;
-    double *B = NULL;
-    double *C = NULL;
-    double *local_A;
-    double *local_C;
-
-    double start, end;
-
-    MPI_Init(&argc, &argv);
-
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    MPI_Comm_size(MPI_COMM_WORLD, &size);
-
-    gethostname(hostname, sizeof(hostname));
-
-    if (N % size != 0)
-    {
-        if (rank == 0)
-            printf("Matrix size must be divisible by number of processes.\n");
-
-        MPI_Finalize();
-        return 0;
-    }
-
-    rows_per_process = N / size;
-
-    local_A = (double *)malloc(rows_per_process * N * sizeof(double));
-    local_C = (double *)malloc(rows_per_process * N * sizeof(double));
-    B = (double *)malloc(N * N * sizeof(double));
-
-    if (rank == 0)
-    {
-        A = (double *)malloc(N * N * sizeof(double));
-        C = (double *)malloc(N * N * sizeof(double));
-
-        printf("Initializing %d x %d matrices...\n", N, N);
-
-        for (i = 0; i < N; i++)
-        {
-            for (j = 0; j < N; j++)
-            {
-                A[i * N + j] = 1.0;
-                B[i * N + j] = 1.0;
-                C[i * N + j] = 0.0;
-            }
-        }
-    }
-
-    MPI_Barrier(MPI_COMM_WORLD);
-    start = MPI_Wtime();
-
-    MPI_Scatter(A, rows_per_process * N, MPI_DOUBLE, local_A, rows_per_process * N, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-    MPI_Bcast(B, N * N, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-
-    printf("Rank %d on %s computing %d rows\n", rank, hostname, rows_per_process);
-
-    for (i = 0; i < rows_per_process; i++)
-    {
-        for (j = 0; j < N; j++)
-        {
-            local_C[i * N + j] = 0.0;
-            for (k = 0; k < N; k++)
-            {
-                local_C[i * N + j] += local_A[i * N + k] * B[k * N + j];
-            }
-        }
-    }
-
-    MPI_Gather(local_C, rows_per_process * N, MPI_DOUBLE, C, rows_per_process * N, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-
-    MPI_Barrier(MPI_COMM_WORLD);
-    end = MPI_Wtime();
-
-    if (rank == 0)
-    {
-        printf("\nMPI Matrix Multiplication Completed\n");
-        printf("Matrix Size = %d x %d\n", N, N);
-        printf("Number of MPI Processes = %d\n", size);
-        printf("Execution Time = %f seconds\n", end - start);
-        printf("Verification C[0][0] = %.2f\n", C[0]);
-
-        free(A);
-        free(C);
-    }
-
-    free(B);
-    free(local_A);
-    free(local_C);
-
-    MPI_Finalize();
-    return 0;
-}
-```
-
----
-
-### 4.4 CUDA GPU Accelerator CUDA C++ Implementation (`src/cuda/matrix_cuda.cu`)
-
-```cuda
-#include <stdio.h>
-#include <stdlib.h>
-#include <cuda_runtime.h>
-
-#define N 4000
-
-__global__ void matMulKernel(float *A, float *B, float *C, int n)
-{
-    int row = blockIdx.y * blockDim.y + threadIdx.y;
-    int col = blockIdx.x * blockDim.x + threadIdx.x;
-
-    if (row < n && col < n)
-    {
-        float sum = 0.0f;
-
-        for (int k = 0; k < n; k++)
-        {
-            sum += A[row * n + k] * B[k * n + col];
-        }
-
-        C[row * n + col] = sum;
-    }
-}
-
-int main()
-{
-    size_t bytes = N * N * sizeof(float);
-
-    float *h_A, *h_B, *h_C;
-    float *d_A, *d_B, *d_C;
-
-    h_A = (float *)malloc(bytes);
-    h_B = (float *)malloc(bytes);
-    h_C = (float *)malloc(bytes);
-
-    if (h_A == NULL || h_B == NULL || h_C == NULL)
-    {
-        printf("Host memory allocation failed\n");
-        return 1;
-    }
-
-    for (int i = 0; i < N * N; i++)
-    {
-        h_A[i] = 1.0f;
-        h_B[i] = 1.0f;
-        h_C[i] = 0.0f;
-    }
-
-    cudaMalloc((void **)&d_A, bytes);
-    cudaMalloc((void **)&d_B, bytes);
-    cudaMalloc((void **)&d_C, bytes);
-
-    cudaEvent_t totalStart, totalStop;
-    cudaEvent_t kernelStart, kernelStop;
-
-    cudaEventCreate(&totalStart);
-    cudaEventCreate(&totalStop);
-    cudaEventCreate(&kernelStart);
-    cudaEventCreate(&kernelStop);
-
-    cudaEventRecord(totalStart);
-
-    cudaMemcpy(d_A, h_A, bytes, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_B, h_B, bytes, cudaMemcpyHostToDevice);
-
-    dim3 block(16, 16);
-    dim3 grid((N + block.x - 1) / block.x, (N + block.y - 1) / block.y);
-
-    cudaEventRecord(kernelStart);
-
-    matMulKernel<<<grid, block>>>(d_A, d_B, d_C, N);
-
-    cudaEventRecord(kernelStop);
-    cudaEventSynchronize(kernelStop);
-
-    cudaMemcpy(h_C, d_C, bytes, cudaMemcpyDeviceToHost);
-
-    cudaEventRecord(totalStop);
-    cudaEventSynchronize(totalStop);
-
-    float kernelTime = 0.0f;
-    float totalTime = 0.0f;
-
-    cudaEventElapsedTime(&kernelTime, kernelStart, kernelStop);
-    cudaEventElapsedTime(&totalTime, totalStart, totalStop);
-
-    printf("CUDA Matrix Multiplication Completed\n");
-    printf("Matrix Size = %d x %d\n", N, N);
-    printf("Grid Size = %d x %d blocks\n", grid.x, grid.y);
-    printf("Block Size = %d x %d threads\n", block.x, block.y);
-    printf("Kernel Execution Time = %.6f seconds\n", kernelTime / 1000.0f);
-    printf("Total CUDA Phase Time = %.6f seconds\n", totalTime / 1000.0f);
-    printf("Verification C[0][0] = %.2f\n", h_C[0]);
-
-    cudaFree(d_A);
-    cudaFree(d_B);
-    cudaFree(d_C);
-
-    free(h_A);
-    free(h_B);
-    free(h_C);
-
-    cudaEventDestroy(totalStart);
-    cudaEventDestroy(totalStop);
-    cudaEventDestroy(kernelStart);
-    cudaEventDestroy(kernelStop);
-
-    return 0;
-}
-```
-
----
-
-## 5. Results & Screenshots
+## 5. Empirical Results & Screenshots
 
 ### 5.1 Sequential Baseline Output
 Execution completed in **380.87 seconds** with correct verification $C[0][0] = 4000.00$.
