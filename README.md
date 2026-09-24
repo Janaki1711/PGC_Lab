@@ -1,4 +1,4 @@
-# Performance Analysis of Sequential, OpenMP, MPI, and CUDA Matrix Multiplication
+# Performance Analysis of Matrix Multiplication
 
 [![Course](https://img.shields.io/badge/Course-Parallel%20%26%20GPU%20Computing-blue.svg)](#)
 [![Workload](https://img.shields.io/badge/Workload-4000x4000%20Matrix%20Multiplication-orange.svg)](#)
@@ -480,7 +480,7 @@ int main()
 
 ---
 
-## 5. Empirical Results & Screenshots
+## 5. Results & Screenshots
 
 ### 5.1 Sequential Baseline Output
 Execution completed in **380.87 seconds** with correct verification $C[0][0] = 4000.00$.
