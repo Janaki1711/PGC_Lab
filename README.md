@@ -12,23 +12,24 @@
 This repository contains the empirical performance analysis, parallel execution models, and benchmark results for a **$4000 \times 4000$ Matrix Multiplication** ($C = A \times B$) across four computing paradigms: Sequential, OpenMP, MPI, and CUDA.
 
 ```mermaid
-flowchart TD
-    subgraph Executive_Summary ["EXECUTIVE SUMMARY BLOCK DIAGRAM"]
-        direction TB
-        Input["Workload Input<br/>4000 x 4000 Matrices A & B (All elements = 1.0)"]
-        
-        subgraph Models ["Parallel Paradigm Evaluation"]
-            direction LR
-            M1["Sequential CPU Baseline<br/>1 Core / 1 Thread<br/>Time: 244.12 s<br/>Speedup: 1.00x"]
-            M2["OpenMP Shared Memory<br/>8 CPU Threads<br/>Time: 30.83 s<br/>Speedup: 7.92x"]
-            M3["MPI Distributed Memory<br/>4 Process Ranks (4 VMs)<br/>Time: 92.98 s<br/>Speedup: 2.63x"]
-            M4["CUDA GPU Parallelism<br/>NVIDIA RTX 4500 Ada<br/>Time: 0.165 s<br/>Speedup: 1479.48x"]
-        end
-        
-        Output["Verification Result<br/>C[0][0] = 4000.00 (Validated Across All 4 Models)"]
-
-        Input --> Models --> Output
+flowchart LR
+    subgraph Input ["1. Workload Input"]
+        IN["4000 x 4000 Matrices A & B<br/>All elements = 1.0"]
     end
+
+    subgraph Models ["2. Parallel Paradigm Evaluation"]
+        direction TB
+        M1["Sequential CPU Baseline — 244.12s (1.00x)"]
+        M2["OpenMP Shared Memory — 30.83s (7.92x)"]
+        M3["MPI Distributed Memory — 92.98s (2.63x)"]
+        M4["CUDA GPU Parallel Acceleration — 0.165s (1479.48x)"]
+    end
+
+    subgraph Output ["3. Deterministic Output"]
+        OUT["Verification Result<br/>C[0][0] = 4000.00"]
+    end
+
+    Input --> Models --> Output
 ```
 
 ### Key Finding
