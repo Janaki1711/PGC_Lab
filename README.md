@@ -68,38 +68,6 @@ flowchart TD
 
 ---
 
-## Repository Structure
-
-```
-PGC_Lab/
-├── README.md                                           # Master Lab Documentation & Benchmark Report
-├── .gitignore                                          # Git ignore rules for build artifacts & binaries
-├── src/                                                # Source Code Implementations
-│   ├── sequential/
-│   │   └── matrix_sequential.c                         # Sequential Single-threaded C Program
-│   ├── openmp/
-│   │   └── matrix_openmp.c                             # OpenMP Multi-threaded Shared-Memory C Program
-│   ├── mpi/
-│   │   ├── matrix_mpi.c                                # MPI Distributed-Memory Matrix Multiplication C Program
-│   │   └── mpi_send_recv.c                             # MPI Point-to-Point Communication Test C Program
-│   └── cuda/
-│       └── matrix_cuda.cu                              # CUDA GPU Kernel Accelerator Program
-├── images/                                             # Execution Output Screenshots & Charts
-│   ├── performance_comparison_charts.png               # Combined Execution Time & Speedup Chart
-│   ├── execution_time_chart.png                        # Execution Time Comparison Bar Chart
-│   ├── speedup_chart.png                               # Speedup Factor Bar Chart
-│   ├── sequential_result.png                           # Sequential Terminal Execution Screenshot
-│   ├── openmp_htop.png                                 # OpenMP htop Multi-core Thread Monitor Screenshot
-│   ├── mpi_ping.png                                    # MPI 4-VM Network Ping Test Screenshot
-│   ├── mpi_send_recv.png                               # MPI Send/Recv Process Verification Screenshot
-│   └── mpi_result.png                                  # MPI Cluster Execution Output Screenshot
-├── docs/                                               # Reference Lab Manuals
-│   ├── Experiment_1_Lab_Manual.docx                    # Complete Reference Format Manual (.docx)
-│   └── MPI_Matrix_Multiplication_Manual.pdf            # MPI Detailed Setup Manual (.pdf)
-└── scripts/
-    └── generate_charts.py                              # Python Script to regenerate performance charts
-```
-
 ---
 
 ## 1. Experiment Objectives
