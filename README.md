@@ -51,38 +51,6 @@ flowchart TD
 
 ---
 
-## Repository Structure
-
-```
-PGC_Lab/
-├── README.md                                           # Master Lab Documentation & Benchmark Report
-├── .gitignore                                          # Git ignore rules for build artifacts & binaries
-├── src/                                                # Source Code Implementations
-│   ├── sequential/
-│   │   └── matrix_sequential.c                         # Sequential Single-threaded C Program
-│   ├── openmp/
-│   │   └── matrix_openmp.c                             # OpenMP Multi-threaded Shared-Memory C Program
-│   ├── mpi/
-│   │   ├── matrix_mpi.c                                # MPI Distributed-Memory C Program
-│   │   └── mpi_send_recv.c                             # MPI Point-to-Point Verification C Program
-│   └── cuda/
-│       └── matrix_cuda.cu                              # CUDA GPU Accelerator Program
-├── images/                                             # Screenshots & Performance Charts
-│   ├── performance_comparison_charts.png               # Combined Performance Chart
-│   ├── execution_time_chart.png                        # Execution Time Comparison Chart
-│   ├── speedup_chart.png                               # Speedup Factor Chart
-│   ├── sequential_result.png                           # Sequential Terminal Execution Screenshot
-│   ├── openmp_htop.png                                 # OpenMP htop Thread Monitor Screenshot
-│   ├── mpi_ping.png                                    # MPI 4-VM Network Ping Screenshot
-│   ├── mpi_send_recv.png                               # MPI Send/Recv Verification Screenshot
-│   └── mpi_result.png                                  # MPI Execution Screenshot
-├── docs/                                               # Reference Lab Manuals
-│   ├── Experiment_1_Lab_Manual.docx                    # Complete Reference Manual (.docx)
-│   └── MPI_Matrix_Multiplication_Manual.pdf            # MPI Setup Manual (.pdf)
-└── scripts/
-    └── generate_charts.py                              # Script to generate comparison charts
-```
-
 ---
 
 ## 1. Experiment Objectives
