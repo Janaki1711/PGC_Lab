@@ -66,22 +66,6 @@ flowchart TD
 
 ## 2. Theoretical & Architectural Comparison
 
-```mermaid
-flowchart TD
-    subgraph Workload ["Matrix Multiplication (4000 x 4000)"]
-    end
-
-    Workload --> Seq["Sequential CPU<br/>(1 Core, Single Thread)"]
-    Workload --> OMP["OpenMP Shared Memory<br/>(8 CPU Threads)"]
-    Workload --> MPI["MPI Distributed Memory<br/>(4 Process Ranks / 4 VMs)"]
-    Workload --> CUDA["CUDA GPU Parallelism<br/>(16 Million GPU Threads)"]
-
-    Seq --> Res1["Execution Time: 244.12s<br/>Speedup: 1.00x"]
-    OMP --> Res2["Execution Time: 30.83s<br/>Speedup: 7.92x"]
-    MPI --> Res3["Execution Time: 92.98s<br/>Speedup: 2.63x"]
-    CUDA --> Res4["Execution Time: 0.165s<br/>Speedup: 1479.48x"]
-```
-
 ### Architectural Breakdown
 
 #### 1. Sequential CPU Execution
