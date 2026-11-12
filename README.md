@@ -1,11 +1,11 @@
 # Parallel & GPU Computing Laboratory (PGC Lab)
 
 [![Course](https://img.shields.io/badge/Course-Parallel%20%26%20GPU%20Computing-blue.svg)](#)
-[![Experiments](https://img.shields.io/badge/Experiments-Exp%201%20%7C%20Exp%202%20%7C%20Exp%203-orange.svg)](#)
-[![Paradigms](https://img.shields.io/badge/Paradigms-Sequential%20%7C%20OpenMP%20%7C%20MPI%20%7C%20Pthreads%20%7C%20CUDA-green.svg)](#)
+[![Experiments](https://img.shields.io/badge/Experiments-Exp%201%20%7C%20Exp%202%20%7C%20Exp%203%20%7C%20Exp%204-orange.svg)](#)
+[![Paradigms](https://img.shields.io/badge/Paradigms-Sequential%20%7C%20OpenMP%20%7C%20MPI%20%7C%20Pthreads%20%7C%20CUDA%20%7C%20NUMA-green.svg)](#)
 [![Status](https://img.shields.io/badge/Status-Completed-brightgreen.svg)](#)
 
-A comprehensive laboratory repository featuring empirical benchmarks, architectural analyses, and implementation source code for high-performance computing, distributed message passing, and shared-memory synchronization paradigms.
+A comprehensive laboratory repository featuring empirical benchmarks, architectural analyses, and implementation source code for high-performance computing, distributed message passing, shared-memory synchronization, cache coherence protocols, and NUMA memory architectures.
 
 ---
 
@@ -16,6 +16,7 @@ A comprehensive laboratory repository featuring empirical benchmarks, architectu
 | **Experiment 1** | **Performance Analysis of Matrix Multiplication** | Sequential, OpenMP (8T), MPI (4-VMs), CUDA (GeForce RTX 5060 Ti) | $4000 \times 4000$ matrix multiplication, 1,155.63× CUDA speedup on RTX 5060 Ti | [Experiment 1 Analysis](#experiment-1-performance-analysis-of-matrix-multiplication) • [`src/`](src/) |
 | **Experiment 2** | **Multithreaded Programming with Pthreads & OpenMP** | POSIX Threads, OpenMP, Mutex, Critical Sections, Barriers | Work partitioning, race hazards, $10^9$ numerical iterations, up to 10.4× speedup | [**Experiment 2 Documentation**](Experiment_2/README.md) • [`Experiment_2/`](Experiment_2/) |
 | **Experiment 3** | **OpenMP Synchronization & Concurrency Benchmark** | Race Conditions, Critical, Atomic, Lock (`omp_lock_t`), Barrier | 10M shared increments, hardware atomics vs OS mutexes, contention analysis | [**Experiment 3 Documentation**](exp3/README.md) • [`exp3/`](exp3/) |
+| **Experiment 4** | **Cache Coherence Protocols (MSI/MESI/MOESI) & NUMA Performance** | MSI/MESI/MOESI Snooping Simulator, False Sharing (Adjacent vs Padded), NUMA Memory Sweep | Elimination of DRAM writebacks via MOESI Owned state, 4.50× speedup via 64-byte padding, up to 18.14 GB/s NUMA sweep throughput | [**Experiment 4 Documentation**](Experiment_4/README.md) • [`Experiment_4/`](Experiment_4/) |
 
 ---
 
