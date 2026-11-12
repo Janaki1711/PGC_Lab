@@ -1,4 +1,4 @@
-# Compiled binaries
+# Compiled binaries & object files
 *.o
 *.out
 *.exe
@@ -7,13 +7,32 @@ matrix_openmp
 matrix_mpi
 mpi_send_recv
 matrix_cuda
+thread1
+thread2
+thread_sum
+race
+mutex
+pthread_perf
+omp1
+omp_sum
+omp_race
+omp_critical
+omp_barrier
+omp_perf
+sequential
 
-# Scratch & build files
+# Scratch, logs & build outputs
 scratch/
 .system_generated/
 *.log
-
-# Temp files
 *.tmp
 .DS_Store
 Thumbs.db
+
+# Local archives and raw directories
+PGC.zip
+PGC/
+PGC_01/
+PGC_Lab_Experiment1/
+PGC_Lab_Experiment2/
+PGC_Lab_Experiment4/
