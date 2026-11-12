@@ -1,4 +1,4 @@
-# Experiment 4: Cache Coherence (MSI, MESI, MOESI), NUMA Memory Access & Multithreaded Synchronization Analysis
+# Experiment 4: Cache Coherence, NUMA Memory Access & Multithreaded Synchronization Analysis
 
 [![Course](https://img.shields.io/badge/Course-Parallel%20%26%20GPU%20Computing-blue.svg)](#)
 [![Code](https://img.shields.io/badge/Code-26ECAC304-orange.svg)](#)
