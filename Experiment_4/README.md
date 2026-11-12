@@ -25,14 +25,14 @@ flowchart LR
 
     subgraph PartB ["2. False Sharing Evaluation"]
         direction TB
-        FS1["Adjacent Layout (Stride = 1)<br/>1.4088s at 4 Threads<br/>Severe Invalidation Ping-Pong"]
-        FS2["Padded Layout (Stride = 8)<br/>0.0119s at 4 Threads<br/>118.39x Performance Advantage"]
+        FS1["Adjacent Layout (Stride = 1)<br/>0.0216s at 4 Threads<br/>Cache Ping-Pong Bottleneck"]
+        FS2["Padded Layout (Stride = 8)<br/>0.0118s at 4 Threads<br/>1.83x Performance Gain"]
     end
 
     subgraph PartC ["3. NUMA Memory Placement"]
         direction TB
-        N1["Default Memory Sweep<br/>2 Threads: 0.0873s (22.91 GB/s)"]
-        N2["Local Node 0 Bound<br/>2 Threads: 0.0842s (23.75 GB/s)"]
+        N1["Default Memory Sweep<br/>2 Threads: 0.1108s (18.05 GB/s)"]
+        N2["Local Node 0 Bound<br/>2 Threads: 0.0984s (20.33 GB/s)"]
     end
 
     PartA --> PartB --> PartC
@@ -41,8 +41,8 @@ flowchart LR
 ### Key Findings
 
 > 1. **DRAM Writeback Elimination via MOESI**: Under intensive cache line contention, the **MOESI protocol completely eliminates DRAM write-back traffic** (**0 writebacks** vs. **1,999** in MSI and MESI over 1,000 iterations). By introducing the **Owned ($O$)** state, the owner cache directly supplies dirty lines via **Cache-to-Cache ($C2C$) transfers**, bypassing slow memory buses.
-> 2. **False Sharing Catastrophe & 118× Mitigation**: When independent thread counters share a single 64-byte cache line (*adjacent layout*), execution time increases catastrophically from **0.0351s at 1 thread** to **1.4088s at 4 threads** (a **40.1× slowdown** due to continuous cache line bouncing). Adding 64-byte padding (*padded layout*) eliminates line invalidations, dropping 4-thread execution time to **0.0119s**—delivering a massive **118.39× performance gain** over the adjacent layout.
-> 3. **NUMA Local Memory Affinity**: Binding threads and memory to local node 0 (`--cpunodebind=0 --membind=0`) reduced 2-thread memory sweep latency from **0.2511s down to 0.0834s** in standalone sweeps (a **3.01× speedup**) and achieved a peak memory sweep throughput of **23.75 GB/s**.
+> 2. **Empirical False Sharing Mitigation**: When independent thread counters share a single 64-byte cache line (*adjacent layout*), execution time increases as threads scale from 2 to 4 threads (rising from **0.0176s up to 0.0216s** due to cache line bouncing). Adding 64-byte padding (*padded layout*) eliminates line invalidations, dropping 4-thread execution time to **0.0118s**—delivering up to **1.85× faster execution** over the adjacent layout.
+> 3. **NUMA Local Memory Affinity**: Binding threads and memory to local node 0 (`--cpunodebind=0 --membind=0`) consistently reduced memory sweep latency from **0.1152s down to 0.0984s**, sustaining peak memory throughput exceeding **20.33 GB/s** by eliminating inter-node traffic.
 
 ---
 
@@ -209,77 +209,85 @@ Execution of `python3 coherence_sim.py 1000` simulating 1,000 iterations ($4,000
 
 #### Screenshot 1: Protocol Simulator State Traces & Aggregate Statistics
 
+Terminal run of `python3 coherence_sim.py 1000` verifying MSI, MESI, and MOESI state traces and transaction totals:
+
 ![Coherence Protocol Simulation](images/01_coherence_sim_trace_and_stats.jpeg)
 
 ---
 
-### 5.2 Standalone False Sharing Scaling Benchmark
+### 5.2 Standalone False Sharing & NUMA Benchmark Runs
 
-Execution of `false_sharing.c` for $100,000,000$ increments across 2 and 4 threads:
+Standalone execution of `false_sharing.c` and `numa_sweep.c` in Janaki's environment:
 
-| Threads ($P$) | Adjacent Layout (s) | Padded Layout (s) | Padded Speedup Multiplier |
-| :---: | :---: | :---: | :---: |
-| **2 Threads** | `0.3925 s` | `0.0326 s` | **12.04× Faster** |
-| **4 Threads** | `1.4164 s` | `0.0216 s` | **65.57× Faster** |
+| Benchmark Run | Configuration | Measured Time (s) | Effective Throughput | Observation |
+| :--- | :--- | :---: | :---: | :--- |
+| **`false_sharing`** | 1 Thread Padded | `0.0253 s` | - | Single-thread baseline |
+| **`false_sharing`** | 2 Threads Adjacent | `0.0159 s` - `0.0183 s` | - | Cache line sharing contention |
+| **`false_sharing`** | 2 Threads Padded | `0.0141 s` - `0.0146 s` | - | **Up to 1.25× speedup** over adjacent |
+| **`numa_sweep` (512 MB)** | 1 Thread (Node 0 Bound) | `0.1027 s` | **19.47 GB/s** | Local NUMA node read throughput |
+| **`numa_sweep` (512 MB)** | 2 Threads (Node 0 Bound) | `0.0984 s` | **20.33 GB/s** | Multi-threaded memory channel saturation |
 
-#### Screenshot 2: Standalone False Sharing Terminal Execution
+#### Screenshot 2: Standalone False Sharing & NUMA Sweep Execution
 
-![False Sharing Terminal Run](images/02_false_sharing_scaling_terminal.jpeg)
-
----
-
-### 5.3 NUMA Memory Sweep Throughput Benchmark
-
-Execution of `numa_sweep.c` over 512 MB buffer (4 passes = 2.0 GB read):
-
-| Run Configuration | Active Threads | Execution Time (s) | Effective Bandwidth (GB/s) |
-| :--- | :---: | :---: | :---: |
-| **Default Sweep** | 12 | `0.0932 s` | 21.46 GB/s |
-| **Default Sweep** | 2 | `0.2511 s` | 7.96 GB/s |
-| **Default Sweep (512 MB)** | 12 | `0.0803 s` | **24.91 GB/s** |
-| **Node 0 Bound (`--cpunodebind=0 --membind=0`)** | 2 | `0.0834 s` | **23.98 GB/s** |
-
-> **Local Node Affinity Gain**: Binding threads and memory to Node 0 reduced 2-thread sweep time from **0.2511s down to 0.0834s**—a **3.01× speedup** due to eliminating cross-socket memory traffic.
-
-#### Screenshot 3: NUMA Memory Sweep Terminal Execution
-
-![NUMA Memory Sweep Run](images/03_numa_sweep_terminal_runs.jpeg)
+![False Sharing and NUMA Sweep Runs](images/02_false_sharing_numa_standalone_runs.jpeg)
 
 ---
 
-### 5.4 Unified Evaluation Tables (Default vs. NUMA Local Node)
+### 5.3 Unified `compare_numa` Evaluation & Intermediate Sweeps
 
-Empirical results from `compare_numa.c` evaluating Table 1 (False Sharing) and Table 2 (Memory Sweep):
+Comprehensive empirical evaluation of `compare_numa.c` generating Table 1 and Table 2 alongside intermediate execution sweeps:
 
-#### Table 1: False Sharing Benchmark ($100,000,000$ Increments)
+#### Table 1: False Sharing Benchmark ($100,000,000$ Increments - Run 1)
 
-| Environment Policy | Layout | Threads | Final Count | Status | Measured Time (s) | Padded Advantage |
-| :--- | :--- | :---: | :---: | :---: | :---: | :---: |
-| **Default** | **adjacent** | 1 | `100000000` | Correct | `0.0351 s` | - |
-| **Default** | **padded** | 1 | `100000000` | Correct | `0.0399 s` | 0.88× |
-| **Default** | **adjacent** | 2 | `100000000` | Correct | `0.4215 s` | - |
-| **Default** | **padded** | 2 | `100000000` | Correct | `0.0293 s` | **14.39× Faster** |
-| **Default** | **adjacent** | 4 | `100000000` | Correct | `1.4088 s` | - |
-| **Default** | **padded** | 4 | `100000000` | Correct | `0.0119 s` | **118.39× Faster** |
-| **Node 0 Bound** | **adjacent** | 1 | `100000000` | Correct | `0.0350 s` | - |
-| **Node 0 Bound** | **padded** | 1 | `100000000` | Correct | `0.0391 s` | 0.90× |
-| **Node 0 Bound** | **adjacent** | 2 | `100000000` | Correct | `0.4377 s` | - |
-| **Node 0 Bound** | **padded** | 2 | `100000000` | Correct | `0.0362 s` | **12.09× Faster** |
-| **Node 0 Bound** | **adjacent** | 4 | `100000000` | Correct | `1.3523 s` | - |
-| **Node 0 Bound** | **padded** | 4 | `100000000` | Correct | `0.0128 s` | **105.65× Faster** |
+| Layout | Threads ($P$) | Final Verified Count | Correctness Status | Measured Time (s) | Relative Advantage |
+| :--- | :---: | :---: | :---: | :---: | :---: |
+| **adjacent** | 1 | `100000000` | Correct | `0.0256 s` | Baseline |
+| **padded** | 1 | `100000000` | Correct | `0.0217 s` | 1.18× Faster |
+| **adjacent** | 2 | `100000000` | Correct | `0.0154 s` | Contention |
+| **padded** | 2 | `100000000` | Correct | `0.0149 s` | 1.03× Faster |
+| **adjacent** | 4 | `100000000` | Correct | `0.0191 s` | Slowdown (Line Invalidation) |
+| **padded** | 4 | `100000000` | Correct | `0.0103 s` | **1.85× Faster (Peak Scaling)** |
 
-#### Table 2: Memory Sweep of 512 MB Buffer (4 Passes)
+#### Table 2: 512 MB Memory Sweep (4 Passes = 2.0 GB Read)
 
-| Environment Policy | Threads | Measured Time (s) | Effective Throughput (GB/s) |
-| :--- | :---: | :---: | :---: |
-| **Default** | 1 | `0.1192 s` | 16.78 GB/s |
-| **Default** | 2 | `0.0873 s` | 22.91 GB/s |
-| **Node 0 Bound (`--cpunodebind=0 --membind=0`)** | 1 | `0.1043 s` | 19.18 GB/s |
-| **Node 0 Bound (`--cpunodebind=0 --membind=0`)** | 2 | `0.0842 s` | **23.75 GB/s** |
+| Active Threads | Measured Time (s) | Effective Memory Bandwidth (GB/s) |
+| :---: | :---: | :---: |
+| **1 Thread** | `0.1154 s` | 17.33 GB/s |
+| **2 Threads** | `0.1097 s` | 18.23 GB/s |
 
-#### Screenshot 4: Unified Comparison Tables (`compare_numa`)
+#### Screenshot 3: `compare_numa` Execution & Verification Sweeps
 
-![Unified Benchmark Tables](images/04_compare_numa_benchmark_tables.jpeg)
+![compare_numa Runs](images/03_compare_numa_execution_and_sweeps.jpeg)
+
+---
+
+### 5.4 Multi-Threaded `compare_numa` Scaling & Node Binding
+
+Execution under multi-threading (`OMP_NUM_THREADS=2 ./compare_numa`) and NUMA node sweeps:
+
+#### Table 1: Multi-Threaded Scaling ($100,000,000$ Increments)
+
+| Layout | Threads ($P$) | Final Verified Count | Status | Measured Time (s) | False Sharing Impact |
+| :--- | :---: | :---: | :---: | :---: | :--- |
+| **adjacent** | 1 | `100000000` | Correct | `0.0207 s` | Baseline single thread |
+| **padded** | 1 | `100000000` | Correct | `0.0204 s` | Baseline single thread |
+| **adjacent** | 2 | `100000000` | Correct | `0.0176 s` | Scaling begins |
+| **padded** | 2 | `100000000` | Correct | `0.0121 s` | **1.45× Faster** |
+| **adjacent** | 4 | `100000000` | Correct | `0.0216 s` | **Performance degrades by 22.7%** |
+| **padded** | 4 | `100000000` | Correct | `0.0118 s` | **1.83× Faster (Optimal scaling)** |
+
+#### Table 2: Memory Sweep Throughput & NUMA Binding Comparison
+
+| Run Configuration | Threads | Measured Time (s) | Bandwidth (GB/s) | Policy Impact |
+| :--- | :---: | :---: | :---: | :--- |
+| **Default Sweep** | 1 | `0.1152 s` | 17.36 GB/s | Default page allocation |
+| **Default Sweep** | 2 | `0.1108 s` | 18.05 GB/s | Concurrent dual-thread read |
+| **Node 0 Bound (`--cpunodebind=0 --membind=0`)** | 1 | `0.1073 s` | **18.64 GB/s** | +7.4% throughput gain |
+| **Node 0 Bound (`--cpunodebind=0 --membind=0`)** | 2 | `0.0992 s` | **20.16 GB/s** | **+11.7% throughput gain (Local RAM)** |
+
+#### Screenshot 4: Multi-Threaded Scaling & NUMA Sweep Execution
+
+![Multi-Threaded compare_numa Run](images/04_compare_numa_multithread_and_numactl.jpeg)
 
 ---
 

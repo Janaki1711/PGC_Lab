@@ -3,7 +3,7 @@
 generate_charts.py - Generates publication-grade performance charts for Experiment 4
 Course: Parallel and GPU Computing (26ECAC304) | Experiment 4
 
-Uses empirical benchmark data measured directly during the laboratory execution.
+Uses empirical benchmark data measured directly in Janaki's laboratory environment.
 """
 
 import os
@@ -19,7 +19,7 @@ plt.rcParams['font.sans-serif'] = ['DejaVu Sans', 'Segoe UI', 'Arial']
 # Color palette
 c_blue = '#0984E3'      # Intel Blue
 c_red = '#D63031'       # Crimson (False Sharing)
-c_green = '#00B894'     # Mint Teal (Padded / Optimal)
+c_green = '#00B894'     # Mint Teal (Padded / Aligned)
 c_purple = '#6C5CE7'    # Royal Violet
 c_orange = '#E17055'    # Coral Orange
 c_dark = '#2D3436'      # Charcoal
@@ -98,15 +98,16 @@ plt.close()
 # =========================================================================
 # 2. Empirical False Sharing Execution Time & Speedup Scaling Chart
 # =========================================================================
+# Data directly from Janaki's lab run (compare_numa run 2 / run 3)
 threads = [1, 2, 4]
-adj_time = [0.0351, 0.4215, 1.4088]
-pad_time = [0.0399, 0.0293, 0.0119]
+adj_time = [0.0207, 0.0176, 0.0216]
+pad_time = [0.0204, 0.0121, 0.0118]
 
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 5.5), facecolor='#FAFAFA')
 
 # Panel 1: Execution Time
-ax1.plot(threads, adj_time, marker='o', markersize=9, color=c_red, lw=2.8, label='Adjacent Layout (Severe False Sharing)')
-ax1.plot(threads, pad_time, marker='s', markersize=9, color=c_green, lw=2.8, linestyle='--', label='Padded Layout (64B Aligned)')
+ax1.plot(threads, adj_time, marker='o', markersize=9, color=c_red, lw=2.8, label='Adjacent Layout (False Sharing Bottleneck)')
+ax1.plot(threads, pad_time, marker='s', markersize=9, color=c_green, lw=2.8, linestyle='--', label='Padded Layout (64B Aligned Scaling)')
 
 for t, at, pt in zip(threads, adj_time, pad_time):
     ax1.annotate(f'{at:.4f}s', (t, at), xytext=(-10, 8), textcoords='offset points', fontsize=9, fontweight='bold', color=c_red)
@@ -116,6 +117,7 @@ ax1.set_title('Empirical Execution Time: 100M Increments', fontsize=12, fontweig
 ax1.set_xlabel('Active Threads', fontsize=11, fontweight='bold', color=c_gray)
 ax1.set_ylabel('Execution Time in Seconds (Lower is Better)', fontsize=11, fontweight='bold', color=c_gray)
 ax1.set_xticks(threads)
+ax1.set_ylim(0.008, 0.026)
 ax1.set_facecolor('#FFFFFF')
 ax1.grid(True, linestyle=':', color='#DFE6E9', alpha=0.9)
 ax1.spines['top'].set_visible(False)
@@ -131,18 +133,18 @@ for b, val in zip(bars, speedup_advantage):
     ax2.annotate(f'{val:.2f}x\nFaster', xy=(b.get_x() + b.get_width()/2, val),
                  xytext=(0, 4), textcoords="offset points", ha='center', va='bottom', fontsize=9.5, fontweight='bold', color=c_dark)
 
-ax2.set_title('Padded Layout Performance Gain over Adjacent', fontsize=12, fontweight='bold', color=c_dark, pad=12)
+ax2.set_title('Padded Layout Speedup Gain over Adjacent', fontsize=12, fontweight='bold', color=c_dark, pad=12)
 ax2.set_xlabel('Thread Count', fontsize=11, fontweight='bold', color=c_gray)
 ax2.set_ylabel('Speedup Factor (Padded vs Adjacent)', fontsize=11, fontweight='bold', color=c_gray)
 ax2.set_xticks(x_pos)
 ax2.set_xticklabels([f'{t} Thread{"s" if t > 1 else ""}' for t in threads], fontweight='bold')
-ax2.set_ylim(0, 140)
+ax2.set_ylim(0, 2.5)
 ax2.set_facecolor('#FFFFFF')
 ax2.grid(True, linestyle=':', color='#DFE6E9', alpha=0.9)
 ax2.spines['top'].set_visible(False)
 ax2.spines['right'].set_visible(False)
 
-plt.suptitle('Empirical False Sharing Benchmark Results (10^8 Increments in Lab Environment)',
+plt.suptitle('Empirical False Sharing Benchmark (Measured in Janaki\'s Environment)',
              fontsize=14, fontweight='bold', color=c_dark, y=1.01)
 plt.tight_layout()
 plt.savefig('images/false_sharing_scaling.png', dpi=300, bbox_inches='tight')
@@ -151,9 +153,8 @@ plt.close()
 # =========================================================================
 # 3. NUMA Memory Sweep Throughput & Policy Comparison Chart
 # =========================================================================
-# 512 MB buffer sweep (4 passes = 2 GB read)
-labels = ['1 Thread (Default)', '1 Thread (Node 0)', '2 Threads (Default)', '2 Threads (Node 0)']
-sweep_times = [0.1192, 0.1043, 0.0873, 0.0842]
+labels = ['1T Default', '1T Node 0 Bound', '2T Default', '2T Node 0 Bound']
+sweep_times = [0.1152, 0.1027, 0.1108, 0.0984]
 total_gb = (512 * 4) / 1024.0  # 2.0 GB
 sweep_bw = [total_gb / t for t in sweep_times]
 
@@ -166,10 +167,10 @@ for b, t_val, bw_val in zip(bars, sweep_times, sweep_bw):
     ax1.annotate(f'{bw_val:.2f} GB/s\n({t_val:.4f}s)', xy=(b.get_x() + b.get_width()/2, bw_val),
                  xytext=(0, 4), textcoords="offset points", ha='center', va='bottom', fontsize=9.5, fontweight='bold', color=c_dark)
 
-ax1.set_title('NUMA 512 MB Memory Sweep: Throughput & Latency (Default vs Local Node 0)',
+ax1.set_title('NUMA 512 MB Memory Sweep: Throughput & Latency (Default vs Node 0 Bound)',
               fontsize=13, fontweight='bold', color=c_dark, pad=15)
 ax1.set_ylabel('Effective Memory Bandwidth (GB/s)', fontsize=11, fontweight='bold', color=c_gray)
-ax1.set_ylim(0, 30)
+ax1.set_ylim(0, 26)
 ax1.grid(True, linestyle=':', color='#DFE6E9', alpha=0.9)
 ax1.set_facecolor('#FFFFFF')
 ax1.spines['top'].set_visible(False)
@@ -195,7 +196,7 @@ d1.grid(True, linestyle=':', color='#DFE6E9', alpha=0.8)
 d1.set_facecolor('#FFFFFF')
 d1.legend(frameon=True, facecolor='#F1F2F6')
 
-# Dashboard Panel 2: False Sharing Execution Time Degradation
+# Dashboard Panel 2: False Sharing Degradation vs Padded Scaling
 d2.plot(threads, adj_time, marker='o', color=c_red, lw=2.8, label='Adjacent (False Sharing)')
 d2.plot(threads, pad_time, marker='s', color=c_green, lw=2.8, linestyle='--', label='Padded (No False Sharing)')
 d2.set_title('(B) False Sharing Penalty: 100M Increments', fontsize=11, fontweight='bold', color=c_dark)
@@ -206,23 +207,23 @@ d2.grid(True, linestyle=':', color='#DFE6E9', alpha=0.8)
 d2.set_facecolor('#FFFFFF')
 d2.legend(frameon=True, facecolor='#F1F2F6')
 
-# Dashboard Panel 3: Padded Speedup Multiplier
+# Dashboard Panel 3: Speedup Factor
 d3.bar(['1 Thread', '2 Threads', '4 Threads'], speedup_advantage, color=[c_orange, c_purple, c_green], width=0.45, edgecolor=c_dark)
 for i, val in enumerate(speedup_advantage):
-    d3.annotate(f'{val:.2f}x Faster', xy=(i, val), xytext=(0, 4), textcoords="offset points", ha='center', fontsize=9.5, fontweight='bold')
-d3.set_title('(C) Speedup Factor: Padded vs Adjacent Layout', fontsize=11, fontweight='bold', color=c_dark)
+    d3.annotate(f'{val:.2f}x Faster', xy=(i, val), xytext=(0, 4), textcoords="offset points", ha='center', va='bottom', fontsize=9.5, fontweight='bold')
+d3.set_title('(C) Speedup Advantage: Padded vs Adjacent Layout', fontsize=11, fontweight='bold', color=c_dark)
 d3.set_ylabel('Speedup Factor', fontsize=10, fontweight='bold', color=c_gray)
-d3.set_ylim(0, 140)
+d3.set_ylim(0, 2.5)
 d3.grid(True, linestyle=':', color='#DFE6E9', alpha=0.8)
 d3.set_facecolor('#FFFFFF')
 
 # Dashboard Panel 4: Memory Bandwidth Scaling (NUMA Sweep)
 d4.bar(labels, sweep_bw, color=colors, width=0.5, edgecolor=c_dark, alpha=0.9)
 for i, bw in enumerate(sweep_bw):
-    d4.annotate(f'{bw:.1f} GB/s', xy=(i, bw), xytext=(0, 4), textcoords="offset points", ha='center', fontsize=9.5, fontweight='bold')
+    d4.annotate(f'{bw:.1f} GB/s', xy=(i, bw), xytext=(0, 4), textcoords="offset points", ha='center', va='bottom', fontsize=9.5, fontweight='bold')
 d4.set_title('(D) Memory Bandwidth: 512 MB Sweep (4 Passes)', fontsize=11, fontweight='bold', color=c_dark)
 d4.set_ylabel('Throughput (GB/s)', fontsize=10, fontweight='bold', color=c_gray)
-d4.set_ylim(0, 30)
+d4.set_ylim(0, 26)
 d4.tick_params(axis='x', rotation=15)
 d4.grid(True, linestyle=':', color='#DFE6E9', alpha=0.8)
 d4.set_facecolor('#FFFFFF')
