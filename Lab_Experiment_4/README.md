@@ -87,15 +87,31 @@ All source code files and build automation are in [`src/`](src/):
 
 ## 3. Empirical Results & Terminal Outputs
 
-### Protocol Simulation & Standalone Benchmarks
-| Protocol Simulator Trace (`coherence_sim.py`) | Standalone False Sharing & NUMA Runs |
-| :---: | :---: |
-| ![Simulator Trace](images/01_coherence_sim_trace_and_stats.jpeg) | ![Standalone Runs](images/02_false_sharing_numa_standalone_runs.jpeg) |
+### 3.1 Cache Coherence Protocol Simulator Trace (`coherence_sim.py`)
+Trace showing cache line transitions, bus transactions, and memory writebacks across MSI, MESI, and MOESI:
 
-### Unified Multi-Thread & NUMA Execution
-| Multi-Threaded Execution & Sweeps | NUMA Policy Binding (`numactl`) |
-| :---: | :---: |
-| ![Compare NUMA Sweeps](images/03_compare_numa_execution_and_sweeps.jpeg) | ![NUMA Node Binding](images/04_compare_numa_multithread_and_numactl.jpeg) |
+![Simulator Trace](images/01_coherence_sim_trace_and_stats.jpeg)
+
+---
+
+### 3.2 Standalone False Sharing & NUMA Benchmark Execution
+Empirical execution showing false sharing runtime regression on adjacent counters and standalone 512 MB memory sweep:
+
+![Standalone Runs](images/02_false_sharing_numa_standalone_runs.jpeg)
+
+---
+
+### 3.3 Unified Benchmark Multi-Threaded Execution (`compare_numa`)
+Multi-threaded execution across 1, 2, and 4 threads for both adjacent and 64-byte padded configurations:
+
+![Compare NUMA Sweeps](images/03_compare_numa_execution_and_sweeps.jpeg)
+
+---
+
+### 3.4 NUMA Policy Node Binding (`numactl`)
+Executing under local node binding (`numactl --cpunodebind=0 --membind=0`), proving bandwidth optimization:
+
+![NUMA Node Binding](images/04_compare_numa_multithread_and_numactl.jpeg)
 
 ---
 
@@ -127,9 +143,11 @@ All source code files and build automation are in [`src/`](src/):
 
 ### Performance Dashboards
 
-| Master Performance Dashboard | Protocol Bus & Memory Traffic |
-| :---: | :---: |
-| ![Dashboard](images/performance_comparison_dashboard.png) | ![Bus Traffic](images/cache_coherence_bus_traffic.png) |
+#### Master Performance Dashboard
+![Dashboard](images/performance_comparison_dashboard.png)
+
+#### Protocol Bus & Memory Traffic Comparison
+![Bus Traffic](images/cache_coherence_bus_traffic.png)
 
 ---
 
@@ -139,21 +157,3 @@ All source code files and build automation are in [`src/`](src/):
 - **Cache Line Bouncing Hazard**: In the adjacent layout, writing to adjacent thread counters repeatedly invalidates the entire 64-byte cache line across cores, causing 4-thread execution time to regress from 0.0176s to 0.0216s.
 - **Hardware Alignment Benefit**: Adding 64-byte padding (`alignas(64)` or `char pad[64]`) isolates variables to separate cache lines, improving 4-thread runtime to **0.0118s (1.85× speedup)**.
 - **NUMA Memory Locality**: Pinning memory allocations and thread execution to the local socket via `numactl --cpunodebind=0 --membind=0` sustains **20.33 GB/s throughput**, cutting latency by ~11%.
-
----
-
-## 6. How to Build & Run
-
-```bash
-cd Lab_Experiment_4/src
-make clean && make
-
-# Run Python protocol simulator
-python3 coherence_sim.py
-
-# Run unified benchmark
-./compare_numa
-
-# Run with local NUMA node binding
-numactl --cpunodebind=0 --membind=0 ./compare_numa
-```

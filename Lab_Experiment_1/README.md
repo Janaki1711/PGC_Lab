@@ -76,20 +76,52 @@ All source implementations are located in [`src/`](src/):
 
 ## 3. Empirical Results & Terminal Outputs
 
-### Sequential & OpenMP
-| Sequential Baseline (380.87s / 244.12s) | OpenMP 8-Thread Scaling (30.83s, 100% Core Load) |
-| :---: | :---: |
-| ![Sequential Result](images/sequential_result.png) | ![OpenMP htop](images/openmp_htop.png) |
+### 3.1 Sequential Baseline Execution
+Execution completed with deterministic verification $C[0][0] = 4000.00$.
 
-### MPI Distributed Execution
-| 4-Node Network Verification (0% Loss) | Point-to-Point Communication | Distributed Result (92.98s) |
-| :---: | :---: | :---: |
-| ![MPI Ping](images/mpi_ping.png) | ![MPI Send Recv](images/mpi_send_recv.png) | ![MPI Result](images/mpi_result.png) |
+![Sequential Result](images/sequential_result.png)
 
-### CUDA GPU Acceleration
-| GPU Hardware & Driver Environment | CUDA Kernel Execution (0.211s, C[0][0] = 4000.00) |
-| :---: | :---: |
-| ![CUDA Environment](images/cuda_environment.png) | ![CUDA Result](images/cuda_result.png) |
+---
+
+### 3.2 OpenMP 8-Thread Shared Memory Scaling
+OpenMP utilized 8 active CPU threads, driving all physical cores to 100% load as verified in `htop` (execution time: 30.83s).
+
+![OpenMP htop](images/openmp_htop.png)
+
+---
+
+### 3.3 MPI Multi-Node Cluster Network Verification
+Ping verification across the 4 Ubuntu VM nodes (`master`, `worker1`, `worker2`, `worker3`) confirming 0% packet loss.
+
+![MPI Ping](images/mpi_ping.png)
+
+---
+
+### 3.4 MPI Process Communication Verification (`mpi_send_recv.c`)
+Point-to-point message passing (`MPI_Send` / `MPI_Recv`) validated across all 4 MPI ranks.
+
+![MPI Send Recv](images/mpi_send_recv.png)
+
+---
+
+### 3.5 MPI Distributed Matrix Multiplication Execution
+Distributed row-scattered computation across 4 VM ranks completing in 92.98s.
+
+![MPI Result](images/mpi_result.png)
+
+---
+
+### 3.6 CUDA GPU Hardware & Compiler Environment
+Host environment specifications: NVIDIA GeForce RTX 5060 Ti (16 GB VRAM, Driver 617.14) and CUDA Toolkit 13.4.
+
+![CUDA Environment](images/cuda_environment.png)
+
+---
+
+### 3.7 CUDA GPU Massively Parallel Matrix Multiplication
+Kernel executed with 16,000,000 concurrent threads ($250 \times 250$ grid, $16 \times 16$ block), completing in **0.211245s**.
+
+![CUDA Result](images/cuda_result.png)
 
 ---
 
@@ -104,7 +136,7 @@ All source implementations are located in [`src/`](src/):
 | **OpenMP** | 8 CPU Threads | `30.830 s` | **7.92×** | `4000.00` |
 | **CUDA** | RTX 5060 Ti (16M Threads) | **`0.211 s`** | **1,155.63×** | `4000.00` |
 
-### Consolidated Performance Charts
+### Benchmark Performance Charts
 
 ![Performance Comparison Charts](images/performance_comparison_charts.png)
 

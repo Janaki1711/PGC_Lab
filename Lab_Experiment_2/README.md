@@ -79,23 +79,37 @@ All implementations are organized in [`src/`](src/):
 
 ## 3. Empirical Results & Screenshots
 
-### Part A — POSIX Threads (Pthreads)
-| Single Thread (`thread1.c`) | Multiple Threads (`thread2.c`) | Work Chunking (`thread_sum.c`) |
-| :---: | :---: | :---: |
-| ![Single Thread](images/01_pthread_single_thread.jpeg) | ![Multi Thread](images/02_pthread_multiple_threads.jpeg) | ![Chunking](images/03_pthread_work_distribution_sum.jpeg) |
+### 3.1 POSIX Threads (Pthreads) Execution
 
-| Race Condition Hazard (`race.c`) | Mutex Synchronization Fix (`mutex.c`) | Scalability Benchmark (`pthread_perf.c`) |
-| :---: | :---: | :---: |
-| ![Pthread Race](images/04_pthread_race_condition.jpeg) | ![Pthread Mutex](images/05_pthread_mutex_fixed.jpeg) | ![Pthreads Perf](images/12_pthread_perf_all_threads.jpeg) |
+#### Thread Creation & Multi-Thread Spawning
+![Single Thread](images/01_pthread_single_thread.jpeg)
+![Multi Thread](images/02_pthread_multiple_threads.jpeg)
 
-### Part B — OpenMP Directives
-| Parallel Region (`omp1.c`) | Sum Reduction (`omp_sum.c`) | Critical Section (`omp_critical.c`) |
-| :---: | :---: | :---: |
-| ![OpenMP Hello](images/06_omp_parallel_hello_32threads.jpeg) | ![OpenMP Reduction](images/07_omp_sum_reduction.jpeg) | ![OpenMP Critical](images/09_omp_critical_section.jpeg) |
+#### Work Distribution & Array Chunking (`thread_sum.c`)
+![Chunking](images/03_pthread_work_distribution_sum.jpeg)
 
-| Barrier Coordination (`omp_barrier.c`) | Sequential Baseline (1.418s) | Scalability Benchmark (`omp_perf.c`) |
-| :---: | :---: | :---: |
-| ![OpenMP Barrier](images/10_omp_barrier_synchronization.jpeg) | ![Sequential Baseline](images/11_sequential_baseline.jpeg) | ![OpenMP Perf](images/13_omp_perf_all_threads.jpeg) |
+#### Race Condition Hazard & Mutex Synchronization Fix
+![Pthread Race](images/04_pthread_race_condition.jpeg)
+![Pthread Mutex](images/05_pthread_mutex_fixed.jpeg)
+
+#### Pthreads Scalability Benchmark (`pthread_perf.c`)
+![Pthreads Perf](images/12_pthread_perf_all_threads.jpeg)
+
+---
+
+### 3.2 OpenMP Directives Execution
+
+#### Parallel Regions & Work-Sharing Reduction
+![OpenMP Hello](images/06_omp_parallel_hello_32threads.jpeg)
+![OpenMP Reduction](images/07_omp_sum_reduction.jpeg)
+
+#### Critical Section Synchronization & Barrier Coordination
+![OpenMP Critical](images/09_omp_critical_section.jpeg)
+![OpenMP Barrier](images/10_omp_barrier_synchronization.jpeg)
+
+#### Sequential Baseline & OpenMP Scalability Benchmark
+![Sequential Baseline](images/11_sequential_baseline.jpeg)
+![OpenMP Perf](images/13_omp_perf_all_threads.jpeg)
 
 ---
 
@@ -113,7 +127,7 @@ All implementations are organized in [`src/`](src/):
 
 $$\text{Speedup } = \frac{T_{\text{seq}}}{T_{\text{par}}}, \quad \text{Efficiency } = \frac{\text{Speedup}}{P} \times 100\%$$
 
-### Scalability Charts
+### Scalability Performance Charts
 
 ![Performance Comparison Charts](images/performance_comparison_charts.png)
 

@@ -78,9 +78,17 @@ All implementations and build automation reside in [`src/`](src/):
 
 ## 3. Empirical Results & Terminal Outputs
 
-| Individual Target Outputs & Barrier Phase Alignment | Full Multi-Threaded Benchmark Output (`compare_sync`) |
-| :---: | :---: |
-| ![Individual Outputs](images/output_part1.png) | ![Benchmark Results](images/benchmark_results.png) |
+### 3.1 Individual Target Execution & Barrier Phase Alignment
+Demonstrating data race errors, correct mutual exclusion across primitives, and two-phase barrier synchronization:
+
+![Individual Outputs](images/output_part1.png)
+
+---
+
+### 3.2 Full Multi-Threaded Benchmark Output (`compare_sync`)
+Benchmark output comparing all synchronization primitives across 1, 2, 4, and 8 threads:
+
+![Benchmark Results](images/benchmark_results.png)
 
 ---
 
@@ -109,9 +117,11 @@ All implementations and build automation reside in [`src/`](src/):
 
 ### Performance Dashboards
 
-| 4-Panel Performance Dashboard | Contention Overhead Scaling |
-| :---: | :---: |
-| ![Dashboard](graphs/performance_comparison_dashboard.png) | ![Contention Overhead](graphs/contention_overhead_analysis.png) |
+#### 4-Panel Performance Dashboard
+![Dashboard](graphs/performance_comparison_dashboard.png)
+
+#### Contention Overhead Scaling
+![Contention Overhead](graphs/contention_overhead_analysis.png)
 
 ---
 
