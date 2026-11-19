@@ -70,7 +70,7 @@ flowchart TD
 | **Lab 1: Matrix Multiplication** | $4000 \times 4000$ Matrix Multiplication ($C = A \times B$) | Sequential CPU: `244.120 s` | CUDA GPU: **`0.211 s`** | **1,155.63× Acceleration** |
 | **Lab 2: Multithreaded Sum** | $1,000,000,000$ ($10^9$) Numerical Iterations | Sequential CPU: `1.418 s` | 16-Thread OpenMP: **`0.136 s`** | **10.41× Speedup** |
 | **Lab 3: Concurrency Control** | $10,000,000$ ($10^7$) Contended Shared Increments | OpenMP Lock: `2.451 s` (8T) | Hardware Atomic: **`0.187 s`** (8T) | **13.13× Higher Throughput** |
-| **Lab 4: Cache Coherence & NUMA** | $100,000,000$ ($10^8$) Increments + 512 MB Sweep | Adjacent (False Sharing): `1.409 s` | 64B Padded Layout: **`0.012 s`** | **118.39× False Sharing Mitigation** |
+| **Lab 4: Cache Coherence & NUMA** | $100,000,000$ ($10^8$) Increments + 512 MB Sweep | Adjacent (False Sharing): `0.022 s` | 64B Padded Layout: **`0.012 s`** | **1.85× False Sharing Mitigation** (20.33 GB/s NUMA Sweep) |
 
 ---
 
