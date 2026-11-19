@@ -1,4 +1,4 @@
-# Experiment 4: Analyze Cache Coherence (MSI, MESI, MOESI) and NUMA Memory Access Performance
+# Lab Experiment 4: Analyze Cache Coherence (MSI, MESI, MOESI) and NUMA Memory Access Performance
 
 [![Course](https://img.shields.io/badge/Course-Parallel%20%26%20GPU%20Computing-blue.svg)](#)
 [![Code](https://img.shields.io/badge/Course%20Code-26ECAC304-orange.svg)](#)
@@ -375,7 +375,7 @@ pip install matplotlib numpy
 ### Build All Implementations
 
 ```bash
-cd Experiment_4/src
+cd Lab_Experiment_4/src
 make all
 ```
 
@@ -404,7 +404,7 @@ numactl --cpunodebind=0 --membind=0 ./compare_numa
 ### Generate Visualizations
 
 ```bash
-cd Experiment_4
+cd Lab_Experiment_4
 python scripts/generate_charts.py
 ```
 

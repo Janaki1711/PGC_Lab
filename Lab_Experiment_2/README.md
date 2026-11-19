@@ -1,4 +1,4 @@
-# Multithreaded Programming Using Pthreads and OpenMP
+# Lab Experiment 2: Multithreaded Programming Using Pthreads and OpenMP
 
 [![Course](https://img.shields.io/badge/Course-Parallel%20%26%20GPU%20Computing-blue.svg)](#)
 [![Workload](https://img.shields.io/badge/Workload-10%5E9%20Numerical%20Iterations-orange.svg)](#)
@@ -54,7 +54,7 @@ flowchart LR
 ## Repository Structure
 
 ```
-Experiment_2/
+Lab_Experiment_2/
 ├── README.md                                           # Master Lab Documentation & Benchmark Report
 ├── .gitignore                                          # Git ignore rules for build artifacts & binaries
 ├── src/                                                # Source Code Implementations

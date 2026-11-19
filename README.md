@@ -1,254 +1,212 @@
 # Parallel & GPU Computing Laboratory (PGC Lab)
 
 [![Course](https://img.shields.io/badge/Course-Parallel%20%26%20GPU%20Computing-blue.svg)](#)
-[![Experiments](https://img.shields.io/badge/Experiments-Exp%201%20%7C%20Exp%202%20%7C%20Exp%203%20%7C%20Exp%204-orange.svg)](#)
-[![Paradigms](https://img.shields.io/badge/Paradigms-Sequential%20%7C%20OpenMP%20%7C%20MPI%20%7C%20Pthreads%20%7C%20CUDA%20%7C%20NUMA-green.svg)](#)
+[![Course Code](https://img.shields.io/badge/Code-26ECAC304-orange.svg)](#)
+[![Curriculum](https://img.shields.io/badge/Curriculum-Lab%20Experiments%201%20to%204-green.svg)](#)
+[![Paradigms](https://img.shields.io/badge/Paradigms-Sequential%20%7C%20OpenMP%20%7C%20MPI%20%7C%20CUDA%20%7C%20Pthreads%20%7C%20NUMA-purple.svg)](#)
 [![Status](https://img.shields.io/badge/Status-Completed-brightgreen.svg)](#)
 
-A comprehensive laboratory repository featuring empirical benchmarks, architectural analyses, and implementation source code for high-performance computing, distributed message passing, shared-memory synchronization, cache coherence protocols, and NUMA memory architectures.
+A comprehensive laboratory repository featuring empirical benchmarks, microarchitectural analyses, mathematical formulations, and implementation source code for high-performance computing, distributed message passing, shared-memory synchronization, cache coherence protocols, and non-uniform memory architectures (NUMA).
 
 ---
 
-## 📑 Laboratory Experiments Catalog
+## 📑 Master Laboratory Experiments Catalog
 
-| Experiment | Title | Paradigms / Primitives | Key Highlights | Links |
+| Experiment | Title | Paradigms & Tools | Key Empirical Highlights | Documentation & Code |
 | :--- | :--- | :--- | :--- | :--- |
-| **Experiment 1** | **Performance Analysis of Matrix Multiplication** | Sequential, OpenMP (8T), MPI (4-VMs), CUDA (GeForce RTX 5060 Ti) | $4000 \times 4000$ matrix multiplication, 1,155.63× CUDA speedup on RTX 5060 Ti | [Experiment 1 Analysis](#experiment-1-performance-analysis-of-matrix-multiplication) • [`src/`](src/) |
-| **Experiment 2** | **Multithreaded Programming with Pthreads & OpenMP** | POSIX Threads, OpenMP, Mutex, Critical Sections, Barriers | Work partitioning, race hazards, $10^9$ numerical iterations, up to 10.4× speedup | [**Experiment 2 Documentation**](Experiment_2/README.md) • [`Experiment_2/`](Experiment_2/) |
-| **Experiment 3** | **OpenMP Synchronization & Concurrency Benchmark** | Race Conditions, Critical, Atomic, Lock (`omp_lock_t`), Barrier | 10M shared increments, hardware atomics vs OS mutexes, contention analysis | [**Experiment 3 Documentation**](exp3/README.md) • [`exp3/`](exp3/) |
-| **Experiment 4** | **Cache Coherence Protocols (MSI/MESI/MOESI) & NUMA Performance** | MSI/MESI/MOESI Snooping Simulator, False Sharing (Adjacent vs Padded), NUMA Memory Sweep | Elimination of DRAM writebacks via MOESI Owned state, 4.50× speedup via 64-byte padding, up to 18.14 GB/s NUMA sweep throughput | [**Experiment 4 Documentation**](Experiment_4/README.md) • [`Experiment_4/`](Experiment_4/) |
+| **Lab 1** | **Performance Analysis of Matrix Multiplication** | Sequential C, OpenMP (8T), MPI (4-VMs), CUDA (RTX 5060 Ti) | $4000 \times 4000$ matrix multiplication; **1,155.63× CUDA speedup** (0.211s vs. 244.12s sequential CPU) | [**Lab Experiment 1**](Lab_Experiment_1/README.md) • [`Lab_Experiment_1/`](Lab_Experiment_1/) |
+| **Lab 2** | **Multithreaded Programming with Pthreads & OpenMP** | POSIX Threads (`pthreads`), OpenMP, Mutex, Critical, Barriers | $10^9$ numerical iterations; **10.4× speedup** on 16 threads (~98.4% parallel efficiency up to 6 threads) | [**Lab Experiment 2**](Lab_Experiment_2/README.md) • [`Lab_Experiment_2/`](Lab_Experiment_2/) |
+| **Lab 3** | **OpenMP Synchronization & Concurrency Benchmark** | Race Conditions, Critical Section, Hardware Atomic, Mutex Lock, Barrier | 10M shared increments; **Hardware Atomics 7.85× faster than Critical** and **13.13× faster than Locks** under contention | [**Lab Experiment 3**](Lab_Experiment_3/README.md) • [`Lab_Experiment_3/`](Lab_Experiment_3/) |
+| **Lab 4** | **Cache Coherence (MSI/MESI/MOESI) & NUMA Performance** | Snooping Simulator, False Sharing (Adjacent vs Padded), NUMA Sweeps | **DRAM writebacks eliminated via MOESI Owned state**; **118× speedup via 64B cache line padding**; **23.75 GB/s NUMA sweep** | [**Lab Experiment 4**](Lab_Experiment_4/README.md) • [`Lab_Experiment_4/`](Lab_Experiment_4/) |
 
 ---
 
-# Experiment 1: Performance Analysis of Matrix Multiplication
-
-[![Workload](https://img.shields.io/badge/Workload-4000x4000%20Matrix%20Multiplication-orange.svg)](#)
-[![Models](https://img.shields.io/badge/Models-Sequential%20%7C%20OpenMP%20%7C%20MPI%20%7C%20CUDA-green.svg)](#)
-
----
-
-## Executive Summary
-
-This repository contains the empirical performance analysis, parallel execution models, and benchmark results for a **$4000 \times 4000$ Matrix Multiplication** ($C = A \times B$) across four computing paradigms: Sequential, OpenMP, MPI, and CUDA.
-
-```mermaid
-flowchart LR
-    subgraph Input ["1. Workload Input"]
-        IN["4000 x 4000 Matrices A & B<br/>All elements = 1.0"]
-    end
-
-    subgraph Models ["2. Parallel Paradigm Evaluation"]
-        direction TB
-        M1["Sequential CPU Baseline — 244.12s (1.00x)"]
-        M2["OpenMP Shared Memory — 30.83s (7.92x)"]
-        M3["MPI Distributed Memory — 92.98s (2.63x)"]
-        M4["CUDA GPU Parallel Acceleration — 0.211s (1155.63x)"]
-    end
-
-    subgraph Output ["3. Deterministic Output"]
-        OUT["Verification Result<br/>C[0][0] = 4000.00"]
-    end
-
-    Input --> Models --> Output
-```
-
-### Key Finding
-
-> **CUDA GPU acceleration achieved a kernel execution time of 0.211245 seconds — representing a 1,155.63× speedup over single-threaded sequential CPU execution (244.12s) and a 145.95× speedup over 8-thread OpenMP shared-memory execution (30.83s).**
-
----
-
-## Table of Contents
-
-1. [Repository Structure](#repository-structure)
-2. [Experiment Objectives](#1-experiment-objectives)
-3. [Theoretical & Architectural Comparison](#2-theoretical--architectural-comparison)
-4. [Workload Specification](#3-workload-specification)
-5. [Source Code References](#4-source-code-references)
-6. [Empirical Results & Screenshots](#5-empirical-results--screenshots)
-7. [Performance Comparison & Visualizations](#6-performance-comparison--visualizations)
-8. [Technical Analysis & Discussion](#7-technical-analysis--discussion)
-9. [Conclusion & Engineering Takeaways](#8-conclusion--engineering-takeaways)
-
----
-
----
-
-## 1. Experiment Objectives
-
-1. **Multi-Model Parallelization**: Implement a uniform $4000 \times 4000$ matrix multiplication workload across four fundamental parallel paradigms: Sequential, OpenMP, MPI, and CUDA.
-2. **Correctness Verification**: Enforce identical input matrix initializations ($A_{ij} = 1.0, B_{ij} = 1.0$) across all implementations to verify deterministic correctness ($C[0][0] = 4000.00$).
-3. **Parallel Performance Evaluation**: Quantify speedup gains obtained by migrating from single-core CPU execution to multi-core shared memory (OpenMP), cluster distributed memory (MPI), and SIMT GPU acceleration (CUDA).
-4. **Overhead Analysis**: Analyze communication latency in network-bound MPI clusters and host-to-device memory transfer overheads ($H2D$ / $D2H$) in CUDA.
-
----
-
-## 2. Theoretical & Architectural Comparison
+## 🏛️ Course Architecture & Paradigm Overview
 
 ```mermaid
 flowchart TD
-    subgraph Workload ["Matrix Multiplication (4000 x 4000)"]
+    subgraph PGC ["Parallel & GPU Computing (26ECAC304)"]
+        direction TB
+        
+        subgraph E1 ["Lab Experiment 1: Multi-Model Parallelism"]
+            direction LR
+            E1_Seq["Sequential CPU<br/>(1 Thread)"]
+            E1_OMP["OpenMP Shared Memory<br/>(8 Threads)"]
+            E1_MPI["MPI Distributed Memory<br/>(4 VM Cluster)"]
+            E1_CUDA["CUDA SIMT Acceleration<br/>(16M GPU Threads)"]
+        end
+
+        subgraph E2 ["Lab Experiment 2: Multithreading Scalability"]
+            direction LR
+            E2_PT["POSIX Threads (Pthreads)<br/>Explicit Management"]
+            E2_OMP["OpenMP Primitives<br/>Directive-Driven"]
+            E2_Work["10^9 Numerical Iterations<br/>10.4x Peak Speedup"]
+        end
+
+        subgraph E3 ["Lab Experiment 3: Concurrency Synchronization"]
+            direction LR
+            E3_Race["Data Race Hazards<br/>(Up to 84.7% Loss)"]
+            E3_Crit["Critical Sections<br/>(Coarse Locking)"]
+            E3_Atom["Hardware Atomics<br/>(LOCK XADD)"]
+            E3_Lock["OpenMP Locks<br/>(omp_lock_t)"]
+            E3_Barr["Phase Barriers<br/>(Rendezvous)"]
+        end
+
+        subgraph E4 ["Lab Experiment 4: Memory Systems & Coherence"]
+            direction LR
+            E4_Proto["MSI vs MESI vs MOESI<br/>Snooping Cache Simulator"]
+            E4_False["False Sharing Analysis<br/>Adjacent vs 64B Padded"]
+            E4_NUMA["NUMA Memory Access<br/>Local vs Remote Placement"]
+        end
     end
-
-    Workload --> Seq["Sequential CPU<br/>(1 Core, Single Thread)"]
-    Workload --> OMP["OpenMP Shared Memory<br/>(8 CPU Threads)"]
-    Workload --> MPI["MPI Distributed Memory<br/>(4 Process Ranks / 4 VMs)"]
-    Workload --> CUDA["CUDA GPU Parallelism<br/>(16 Million GPU Threads)"]
-
-    Seq --> Res1["Execution Time: 244.12s<br/>Speedup: 1.00x"]
-    OMP --> Res2["Execution Time: 30.83s<br/>Speedup: 7.92x"]
-    MPI --> Res3["Execution Time: 92.98s<br/>Speedup: 2.63x"]
-    CUDA --> Res4["Execution Time: 0.211s<br/>Speedup: 1155.63x"]
 ```
 
-### Architectural Breakdown
+---
 
-#### 1. Sequential CPU Execution
-Execution follows a traditional single-threaded, triple-nested loop ($O(N^3)$ complexity). Instructions run strictly sequentially on a single CPU core without hardware concurrency.
+## 🔬 Consolidated Benchmark Summary
 
-#### 2. OpenMP (Shared Memory)
-OpenMP uses compiler directives (`#pragma omp parallel for`) to fork 8 worker threads sharing a single unified memory address space. Loop iterations are dynamically divided across CPU cores.
-
-#### 3. MPI (Distributed Memory)
-MPI operates across disjoint memory address spaces over a virtual network connecting 4 Ubuntu VMs (`master`, `worker1`, `worker2`, `worker3`). 
-- **Scatter**: Matrix $A$ is partitioned into sub-blocks (1000 rows each) and scattered across the 4 ranks (`MPI_Scatter`).
-- **Broadcast**: Matrix $B$ is duplicated to all ranks (`MPI_Bcast`).
-- **Gather**: Computed partial results are assembled back into Matrix $C$ on Rank 0 (`MPI_Gather`).
-
-#### 4. CUDA (Massively Parallel SIMT)
-CUDA offloads computation from host CPU memory to device GPU memory via PCIe bus. The computation is structured into a 2D execution grid:
-- **GPU Hardware**: NVIDIA GeForce RTX 5060 Ti (16 GB VRAM, Driver 617.14, CUDA 13.4)
-- **Grid Configuration**: $250 \times 250 = 62,500$ blocks
-- **Block Configuration**: $16 \times 16 = 256$ threads/block
-- **Total Logical GPU Threads**: $16,000,000$ threads running concurrently.
+| Experiment | Workload Specification | Baseline Metric | Optimized Metric | Measured Speedup / Gain |
+| :--- | :--- | :---: | :---: | :---: |
+| **Lab 1: Matrix Multiplication** | $4000 \times 4000$ Matrix Multiplication ($C = A \times B$) | Sequential CPU: `244.120 s` | CUDA GPU: **`0.211 s`** | **1,155.63× Acceleration** |
+| **Lab 2: Multithreaded Sum** | $1,000,000,000$ ($10^9$) Numerical Iterations | Sequential CPU: `1.418 s` | 16-Thread OpenMP: **`0.136 s`** | **10.41× Speedup** |
+| **Lab 3: Concurrency Control** | $10,000,000$ ($10^7$) Contended Shared Increments | OpenMP Lock: `2.451 s` (8T) | Hardware Atomic: **`0.187 s`** (8T) | **13.13× Higher Throughput** |
+| **Lab 4: Cache Coherence & NUMA** | $100,000,000$ ($10^8$) Increments + 512 MB Sweep | Adjacent (False Sharing): `1.409 s` | 64B Padded Layout: **`0.012 s`** | **118.39× False Sharing Mitigation** |
 
 ---
 
-## 3. Workload Specification
+## 📁 Repository Directory Hierarchy
 
-- **Matrix Dimension ($N$)**: $4000 \times 4000$
-- **Input Matrix $A$**: $A[i][j] = 1.0$ for all $i, j$
-- **Input Matrix $B$**: $B[i][j] = 1.0$ for all $i, j$
-- **Mathematical Operation**: $C[i][j] = \sum_{k=0}^{N-1} A[i][k] \times B[k][j]$
-- **Expected Verification Value**:
-  $$C[0][0] = \sum_{k=0}^{3999} (1.0 \times 1.0) = 4000.00$$
+Every laboratory experiment is structured into an independent, self-contained sub-repository featuring source implementations, build automation (`Makefile`), empirical terminal screenshots, automated chart generation scripts, and detailed technical reports:
+
+```
+PGC_Lab/
+├── README.md                                           # Master Laboratory Catalog & Benchmark Hub
+├── .gitignore                                          # Global build and runtime artifact ignore rules
+│
+├── Lab_Experiment_1/                                   # Lab 1: Multi-Paradigm Matrix Multiplication
+│   ├── README.md                                       # Empirical Report & Mathematical Verification
+│   ├── .gitignore                                      # Build artifact exclusions
+│   ├── images/                                         # CUDA environment, MPI cluster & execution screenshots
+│   ├── scripts/
+│   │   └── generate_charts.py                          # Chart generation (Execution time & Speedup)
+│   └── src/
+│       ├── sequential/matrix_sequential.c              # Baseline single-threaded triple-loop implementation
+│       ├── openmp/matrix_openmp.c                      # Multi-threaded shared-memory implementation
+│       ├── mpi/matrix_mpi.c                            # Distributed cluster implementation (Scatter/Gather)
+│       ├── mpi/mpi_send_recv.c                         # Point-to-point MPI verification test
+│       └── cuda/matrix_cuda.cu                         # Massively parallel SIMT CUDA kernel implementation
+│
+├── Lab_Experiment_2/                                   # Lab 2: Multithreaded Programming (Pthreads & OpenMP)
+│   ├── README.md                                       # Comprehensive Scalability & Thread Report
+│   ├── .gitignore                                      # Build artifact exclusions
+│   ├── images/                                         # 20 empirical execution logs & benchmark charts
+│   ├── scripts/
+│   │   └── generate_charts.py                          # 3-panel performance & parallel efficiency charts
+│   └── src/
+│       ├── pthreads/                                   # Low-level POSIX threads implementations
+│       │   ├── thread1.c, thread2.c, thread_sum.c      # Thread lifecycle & work distribution
+│       │   ├── race.c, mutex.c, pthread_perf.c         # Concurrency hazards & mutex synchronization
+│       │   └── sequential.c                            # Single-threaded numerical baseline
+│       └── openmp/                                     # High-level OpenMP implementations
+│           ├── omp1.c, omp_sum.c, omp_race.c           # Parallel regions & reduction clauses
+│           ├── omp_critical.c, omp_barrier.c           # Critical section & barrier synchronization
+│           └── omp_perf.c                              # Scalability micro-benchmark (1 to 16 threads)
+│
+├── Lab_Experiment_3/                                   # Lab 3: OpenMP Synchronization & Concurrency
+│   ├── README.md                                       # Synchronization & Contention Benchmark Report
+│   ├── .gitignore                                      # Build artifact exclusions
+│   ├── graphs/                                         # Heatmaps, overhead growth & throughput charts
+│   ├── images/                                         # Empirical execution screenshots from laboratory VM
+│   ├── scripts/
+│   │   └── generate_charts.py                          # Multi-metric comparative chart generator
+│   └── src/
+│       ├── Makefile                                    # Automated GCC build rules
+│       ├── race.c                                      # Unsynchronized data race demonstration
+│       ├── critical.c                                  # Compiler critical section mutual exclusion
+│       ├── atomic.c                                    # Hardware atomic instruction benchmark
+│       ├── barrier.c                                   # Two-phase barrier synchronization
+│       ├── semaphore.c                                 # OpenMP runtime mutex/lock primitive
+│       └── compare_sync.c                              # Automated comparative benchmark suite
+│
+└── Lab_Experiment_4/                                   # Lab 4: Cache Coherence Protocols & NUMA
+    ├── README.md                                       # Microarchitectural Report & Protocol Analysis
+    ├── .gitignore                                      # Build artifact exclusions
+    ├── docs/
+    │   └── Exp_4_Cache_Coherence_NUMA.pdf              # Official syllabus laboratory manual
+    ├── images/                                         # Empirical terminal screenshots & dashboard charts
+    ├── scripts/
+    │   └── generate_charts.py                          # Coherence bus traffic & false sharing charts
+    └── src/
+        ├── Makefile                                    # Automated build configuration
+        ├── coherence_sim.py                            # Cycle-accurate MSI/MESI/MOESI protocol simulator
+        ├── false_sharing.c                             # Adjacent vs 64-byte padded layout benchmark
+        ├── numa_sweep.c                                # 512 MB memory sweep bandwidth benchmark
+        └── compare_numa.c                              # Unified False Sharing & NUMA evaluation program
+```
 
 ---
 
-## 4. Source Code References
+## ⚙️ Hardware & Software Environment
 
-All complete source code files are located in the [`src/`](src/) directory:
-
-| Computing Paradigm | Source File Link | Description / Implementation Highlights |
+| Category | Specification | Details |
 | :--- | :--- | :--- |
-| **Sequential CPU** | [`src/sequential/matrix_sequential.c`](src/sequential/matrix_sequential.c) | Baseline $O(N^3)$ triple-nested loop implementation in C |
-| **OpenMP** | [`src/openmp/matrix_openmp.c`](src/openmp/matrix_openmp.c) | `#pragma omp parallel for private(j, k)` shared-memory multi-threading |
-| **MPI Distributed** | [`src/mpi/matrix_mpi.c`](src/mpi/matrix_mpi.c) | `MPI_Scatter`, `MPI_Bcast`, and `MPI_Gather` distributed execution |
-| **MPI Test** | [`src/mpi/mpi_send_recv.c`](src/mpi/mpi_send_recv.c) | Point-to-point `MPI_Send` and `MPI_Recv` communication test |
-| **CUDA GPU** | [`src/cuda/matrix_cuda.cu`](src/cuda/matrix_cuda.cu) | CUDA kernel `matMulKernel<<<grid, block>>>` with 16 million GPU threads |
+| **Host Processor** | 13th Gen Intel(R) Core(TM) i5-13420H | 8 Cores (4 P-Cores + 4 E-Cores), 12 Threads, 12 MB Smart Cache |
+| **Host GPU** | NVIDIA GeForce RTX 5060 Ti | 16 GB GDDR6 VRAM, CUDA Compute Capability 9.0+, Driver 617.14 |
+| **Operating Systems** | Ubuntu 22.04 LTS (WSL2 / VMware) | Linux Kernel 5.15+ (x86_64 architecture) |
+| **Compiler Toolchains** | GCC 15.2.0 / Clang 14.0 | C99 / C11 standards with `-O2 -Wall -fopenmp` |
+| **GPU Framework** | NVIDIA CUDA Toolkit 13.4 | `nvcc` compiler with SIMT grid-stride loop execution |
+| **Distributed Tools** | MPICH / OpenMPI 4.1 | Distributed execution across 4 virtualized cluster nodes |
+| **Analysis Utilities** | `numactl`, `hwloc`, Python 3 | NUMA policy binding, hardware topology, and Matplotlib plotting |
 
 ---
 
-## 5. Empirical Results & Screenshots
+## 🚀 Quick Start Guide
 
-### 5.1 Sequential Baseline Output
-Execution completed in **380.87 seconds** with correct verification $C[0][0] = 4000.00$.
+### 1. Clone the Repository
 
-![Sequential Execution Result](images/sequential_result.png)
+```bash
+git clone https://github.com/Janaki1711/PGC_Lab.git
+cd PGC_Lab
+```
 
----
+### 2. Build and Execute Individual Experiments
 
-### 5.2 OpenMP Shared Memory Thread Scaling
-OpenMP utilized 8 active CPU threads, achieving 100% CPU core utilization across cores as monitored in `htop`. Execution time dropped to **30.83 seconds**.
+#### Lab Experiment 1: Matrix Multiplication
+```bash
+cd Lab_Experiment_1/src
+gcc -O2 sequential/matrix_sequential.c -o matrix_sequential && ./matrix_sequential
+gcc -O2 -fopenmp openmp/matrix_openmp.c -o matrix_openmp && ./matrix_openmp
+mpicc -O2 mpi/matrix_mpi.c -o matrix_mpi && mpirun -np 4 ./matrix_mpi
+nvcc -O2 cuda/matrix_cuda.cu -o matrix_cuda && ./matrix_cuda
+```
 
-![OpenMP htop Execution](images/openmp_htop.png)
+#### Lab Experiment 2: Multithreading Scalability
+```bash
+cd Lab_Experiment_2/src
+gcc -O2 -pthread pthreads/pthread_perf.c -o pthread_perf && ./pthread_perf
+gcc -O2 -fopenmp openmp/omp_perf.c -o omp_perf && ./omp_perf
+```
 
----
+#### Lab Experiment 3: Synchronization Primitives
+```bash
+cd Lab_Experiment_3/src
+make all
+./compare_sync
+```
 
-### 5.3 MPI Multi-Node Cluster Network Verification
-Ping test confirming 0% packet loss across the 4 VM cluster (`master`, `worker1`, `worker2`, `worker3`).
-
-![MPI Ping Test](images/mpi_ping.png)
-
----
-
-### 5.4 MPI Process Communication Verification (`mpi_send_recv.c`)
-Successful point-to-point message passing (`MPI_Send` / `MPI_Recv`) across all 4 MPI ranks.
-
-![MPI Send Recv Verification](images/mpi_send_recv.png)
-
----
-
-### 5.5 MPI Distributed Matrix Multiplication Execution
-Distributed calculation across 4 VM ranks computing 1000 rows each. Execution time achieved was **226.17 seconds** (and **92.98 seconds** in optimized cluster runs).
-
-![MPI Matrix Multiplication Result](images/mpi_result.png)
-
----
-
-### 5.6 CUDA GPU Hardware & Environment Verification
-Verification of host GPU hardware specifications via `nvidia-smi` and compiler environment via `nvcc --version`:
-- **GPU Hardware**: NVIDIA GeForce RTX 5060 Ti (16,311 MiB / 16 GB VRAM, Driver Version 617.14)
-- **CUDA Toolkit**: Release 13.4, V13.4.92
-
-![CUDA Environment and GPU Verification](images/cuda_environment.png)
+#### Lab Experiment 4: Cache Coherence & NUMA
+```bash
+cd Lab_Experiment_4/src
+make all
+python3 coherence_sim.py 1000
+./compare_numa
+```
 
 ---
 
-### 5.7 CUDA GPU Parallel Matrix Multiplication Execution
-Compilation via `nvcc -O2 matrix_cuda.cu -o matrix_cuda` and execution of `matrix_cuda.exe` on the $4000 \times 4000$ matrix multiplication workload:
-- **Matrix Dimension**: $4000 \times 4000$
-- **Block Configuration**: $16 \times 16$ threads per block (256 threads/block)
-- **Grid Configuration**: $250 \times 250$ blocks ($62,500$ blocks)
-- **Total Concurrent GPU Threads**: $16,000,000$ threads
-- **Verification Output**: $C[0][0] = 4000.00$
-- **Kernel Execution Time**: **0.211245 seconds**
+## 👨‍💻 Author
 
-![CUDA Matrix Multiplication Execution Result](images/cuda_result.png)
-
----
-
-## 6. Performance Comparison & Visualizations
-
-### 6.1 Performance Comparison Table
-
-| Model | Architecture | Active Resources | Execution Time (s) | Speedup Factor | Verification $C[0][0]$ |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **Sequential** | Single CPU Core | 1 CPU Thread | `244.120000` | **1.00×** | `4000.00` |
-| **OpenMP** | Shared-Memory Multi-core | 8 CPU Threads | `30.830434` | **7.92×** | `4000.00` |
-| **MPI** | Distributed 4-VM Cluster | 4 Process Ranks | `92.979510` | **2.63×** | `4000.00` |
-| **CUDA** | Massively Parallel GPU | NVIDIA GeForce RTX 5060 Ti | `0.211245` | **1155.63×** | `4000.00` |
-
-### 6.2 Empirical Performance Charts
-
-#### Execution Time & Speedup Comparison Graphs
-
-![Performance Comparison Charts](images/performance_comparison_charts.png)
-
-#### Standalone Execution Time Chart
-![Execution Time Chart](images/execution_time_chart.png)
-
-#### Standalone Speedup Factor Chart
-![Speedup Chart](images/speedup_chart.png)
-
-### Performance Metric Formulas
-$$\text{Speedup} = \frac{T_{\text{Sequential}}}{T_{\text{Parallel}}}$$
-
-$$\text{Efficiency} = \frac{\text{Speedup}}{P} \times 100\%$$
-
----
-
-## 7. Technical Analysis & Discussion
-
-1. **Sequential CPU Baseline**: Serves as the computational baseline ($244.12\text{s}$). Performance is severely bound by single-core compute speeds and sequential $O(N^3)$ loop execution.
-2. **OpenMP Efficiency**: Shared-memory multi-threading achieved an impressive **7.92× speedup** on 8 CPU threads ($\sim 99\%$ parallel efficiency). Because memory is shared, zero inter-thread data transfer overhead is incurred.
-3. **MPI Network Overhead**: While MPI successfully parallelizes work across 4 separate VMs, network communication (`MPI_Scatter` of Matrix A and `MPI_Bcast` of Matrix B over virtual NICs) introduces communication overhead. Thus, speedup is $2.63\times$ compared to OpenMP's $7.92\times$.
-4. **CUDA GPU Dominance**: CUDA achieves an extraordinary **1,155.63× speedup**. Offloading $16,000,000$ threads onto the NVIDIA GeForce RTX 5060 Ti CUDA cores processes all row-column dot products concurrently in hardware. The kernel execution itself completes in just **0.211245 seconds**.
-
----
-
-## 8. Conclusion & Engineering Takeaways
-
-1. **Compute-Intensive Parallelism**: For dense linear algebra workloads like matrix multiplication, GPU acceleration (CUDA) vastly outperforms traditional CPU parallel paradigms due to massive hardware thread parallelism.
-2. **Shared vs Distributed Memory**: OpenMP offers near-linear speedup with zero code restructuring overhead for single-node multi-core systems. MPI enables horizontal scaling across independent hardware clusters, though performance depends heavily on interconnect bandwidth.
-3. **Deterministic Verification**: All four parallel paradigms produced identical verification outputs ($C[0][0] = 4000.00$), confirming numerical correctness across all computing models.
+- **Janaki M**
+- GitHub: [@Janaki1711](https://github.com/Janaki1711)
+- Department of Computer Science and Engineering (Artificial Intelligence)
+- Course: Parallel and GPU Computing (26ECAC304)

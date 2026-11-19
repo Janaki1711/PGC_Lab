@@ -1,4 +1,4 @@
-# Experiment 3: OpenMP Synchronization & Concurrency Benchmark
+# Lab Experiment 3: OpenMP Synchronization & Concurrency Benchmark
 
 [![Course](https://img.shields.io/badge/Course-Parallel%20%26%20GPU%20Computing-blue.svg)](#)
 [![Workload](https://img.shields.io/badge/Workload-10M%20Shared%20Increments-orange.svg)](#)
@@ -128,17 +128,17 @@ A phase-synchronization primitive rather than a mutual exclusion mechanism. It c
 
 ## 4. Source Code References
 
-All C source code files and build automation configurations are organized in the [`code/`](code/) directory:
+All C source code files and build automation configurations are organized in the [`src/`](src/) directory:
 
 | Component / Mechanism | Source File Link | Key OpenMP Primitives / Implementation Highlights |
 | :--- | :--- | :--- |
-| **Data Race Demo** | [`code/race.c`](code/race.c) | Unsynchronized concurrent `counter++` exposing race condition |
-| **Critical Section** | [`code/critical.c`](code/critical.c) | `#pragma omp critical` enclosing critical counter increment |
-| **Hardware Atomic** | [`code/atomic.c`](code/atomic.c) | `#pragma omp atomic` issuing lightweight hardware atomic instructions |
-| **Barrier Phase Sync** | [`code/barrier.c`](code/barrier.c) | `#pragma omp barrier` coordinating 2-phase parallel thread execution |
-| **Lock / Semaphore** | [`code/semaphore.c`](code/semaphore.c) | `omp_lock_t`, `omp_init_lock`, `omp_set_lock`, `omp_unset_lock` |
-| **Comprehensive Benchmark** | [`code/compare_sync.c`](code/compare_sync.c) | Automated test suite comparing all mechanisms across 1, 2, 4, 8 threads |
-| **Build Automation** | [`code/Makefile`](code/Makefile) | Makefile compiling all targets with `gcc -fopenmp -O2 -Wall` |
+| **Data Race Demo** | [`src/race.c`](src/race.c) | Unsynchronized concurrent `counter++` exposing race condition |
+| **Critical Section** | [`src/critical.c`](src/critical.c) | `#pragma omp critical` enclosing critical counter increment |
+| **Hardware Atomic** | [`src/atomic.c`](src/atomic.c) | `#pragma omp atomic` issuing lightweight hardware atomic instructions |
+| **Barrier Phase Sync** | [`src/barrier.c`](src/barrier.c) | `#pragma omp barrier` coordinating 2-phase parallel thread execution |
+| **Lock / Semaphore** | [`src/semaphore.c`](src/semaphore.c) | `omp_lock_t`, `omp_init_lock`, `omp_set_lock`, `omp_unset_lock` |
+| **Comprehensive Benchmark** | [`src/compare_sync.c`](src/compare_sync.c) | Automated test suite comparing all mechanisms across 1, 2, 4, 8 threads |
+| **Build Automation** | [`src/Makefile`](src/Makefile) | Makefile compiling all targets with `gcc -fopenmp -O2 -Wall` |
 | **Chart Generator** | [`scripts/generate_charts.py`](scripts/generate_charts.py) | Python script generating multi-panel comparison dashboards and metrics |
 
 ---
@@ -246,7 +246,7 @@ While simple to write, `#pragma omp critical` imposes a **20.50× slowdown** whe
 
 ### 1. Build All Targets via Makefile
 ```bash
-cd exp3/code
+cd Lab_Experiment_3/src
 make
 ```
 
