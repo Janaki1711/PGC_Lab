@@ -1,25 +1,34 @@
-// semaphore.c - Simulates semaphore-like behavior using omp_lock_t
+// semaphore.c - Uses POSIX semaphores (sem_t) for thread synchronization
 #include <stdio.h>
-#include <omp.h>
+#include <pthread.h>
+#include <semaphore.h>
 
-#define NUM_THREADS 4
-#define NUM_INCREMENTS 10000000
+sem_t semaphore;
+int counter = 0;
+
+void* work(void* a) {
+    for (int i = 0; i < 100000; i++) {
+        sem_wait(&semaphore);
+        counter++;
+        sem_post(&semaphore);
+    }
+    return NULL;
+}
 
 int main() {
-    long long counter = 0;
-    omp_lock_t lock;
-    omp_init_lock(&lock);
+    pthread_t t1, t2;
+    sem_init(&semaphore, 0, 1);
 
-    #pragma omp parallel num_threads(NUM_THREADS)
-    {
-        for (int i = 0; i < NUM_INCREMENTS / NUM_THREADS; i++) {
-            omp_set_lock(&lock);
-            counter++;
-            omp_unset_lock(&lock);
-        }
-    }
+    printf("POSIX Semaphore -\n");
+    pthread_create(&t1, NULL, work, NULL);
+    pthread_create(&t2, NULL, work, NULL);
+    pthread_join(t1, NULL);
+    pthread_join(t2, NULL);
 
-    omp_destroy_lock(&lock);
-    printf("Counter=%lld\n", counter);
+    printf("Expected Counter: %d\n", 200000);
+    printf("Actual Counter:   %d\n", counter);
+    printf("Status:           %s\n", (counter == 200000) ? "Correct" : "INCORRECT");
+
+    sem_destroy(&semaphore);
     return 0;
 }

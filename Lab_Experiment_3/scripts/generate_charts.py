@@ -9,20 +9,21 @@ os.makedirs('images', exist_ok=True)
 plt.rcParams['font.family'] = 'sans-serif'
 plt.rcParams['font.sans-serif'] = ['DejaVu Sans', 'Segoe UI', 'Arial']
 
-# Benchmark Data (10,000,000 increments)
+# Benchmark Data (10,000,000 increments) from Janaki's empirical lab run
 threads = [1, 2, 4, 8]
 mechanisms = ['None (Race)', 'Atomic', 'Critical', 'Lock (Mutex)']
 
-# Times in seconds
+# Times in seconds directly from lab execution (compare_sync)
 times = {
-    'None (Race)': [0.0098, 0.0628, 0.0871, 0.1044],
-    'Atomic':      [0.0262, 0.1178, 0.1362, 0.1867],
-    'Critical':    [0.0715, 0.3884, 0.8596, 1.4656],
-    'Lock (Mutex)': [0.0774, 0.5356, 1.2421, 2.4512]
+    'None (Race)': [0.0071, 0.0194, 0.0125, 0.0122],
+    'Atomic':      [0.0664, 0.1550, 0.1660, 0.1810],
+    'Critical':    [0.1143, 0.3579, 0.3421, 0.3618],
+    'Lock (Mutex)': [0.1119, 0.3188, 0.3850, 0.3764]
 }
 
-# Lost updates percentage for None (Race)
-lost_pct = [0.0, (1 - 4757077/10000000)*100, (1 - 2407346/10000000)*100, (1 - 1524653/10000000)*100]
+# Lost updates percentage for None (Race) from lab output: 10M, 7153581, 3558867, 1856471
+final_counts_none = [10000000, 7153581, 3558867, 1856471]
+lost_pct = [(1.0 - c / 10000000.0) * 100 for c in final_counts_none]
 
 # Muted, professional engineering palette
 colors = {
@@ -144,4 +145,4 @@ plt.tight_layout()
 plt.savefig('graphs/contention_overhead_analysis.png', dpi=200, bbox_inches='tight')
 plt.close()
 
-print('Experiment 3 charts regenerated with balanced sizing and high readability.')
+print('Experiment 3 charts regenerated with authentic lab data and high readability.')

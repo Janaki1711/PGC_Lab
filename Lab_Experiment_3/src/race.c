@@ -2,20 +2,18 @@
 #include <stdio.h>
 #include <omp.h>
 
-#define NUM_THREADS 4
-#define NUM_INCREMENTS 10000000
-
 int main() {
-    long long counter = 0;
+    long counter = 0;
+    long expected = 10000000;
 
-    #pragma omp parallel num_threads(NUM_THREADS)
-    {
-        for (int i = 0; i < NUM_INCREMENTS / NUM_THREADS; i++) {
-            counter++;  // No sync → race condition
-        }
+    #pragma omp parallel for
+    for (long i = 0; i < expected; i++) {
+        counter++;  // Unsynchronized read-modify-write
     }
 
-    printf("Counter=%lld\n", counter);
-    printf("Expected=%d\n", NUM_INCREMENTS);
+    printf("Race Condition -\n");
+    printf("Expected Counter: %ld\n", expected);
+    printf("Actual Counter:   %ld\n", counter);
+    printf("Status:           %s\n", (counter == expected) ? "Correct" : "INCORRECT (Race Detected)");
     return 0;
 }

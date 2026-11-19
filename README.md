@@ -16,7 +16,7 @@ A comprehensive laboratory repository featuring empirical benchmarks, microarchi
 | :--- | :--- | :--- | :--- | :--- |
 | **Lab 1** | **Performance Analysis of Matrix Multiplication** | Sequential C, OpenMP (8T), MPI (4-VMs), CUDA (RTX 5060 Ti) | $4000 \times 4000$ matrix multiplication; **1,155.63× CUDA speedup** (0.211s vs. 244.12s sequential CPU) | [**Lab Experiment 1**](Lab_Experiment_1/README.md) • [`Lab_Experiment_1/`](Lab_Experiment_1/) |
 | **Lab 2** | **Multithreaded Programming with Pthreads & OpenMP** | POSIX Threads (`pthreads`), OpenMP, Mutex, Critical, Barriers | $10^9$ numerical iterations; **10.4× speedup** on 16 threads (~98.4% parallel efficiency up to 6 threads) | [**Lab Experiment 2**](Lab_Experiment_2/README.md) • [`Lab_Experiment_2/`](Lab_Experiment_2/) |
-| **Lab 3** | **OpenMP Synchronization & Concurrency Benchmark** | Race Conditions, Critical Section, Hardware Atomic, Mutex Lock, Barrier | 10M shared increments; **Hardware Atomics 7.85× faster than Critical** and **13.13× faster than Locks** under contention | [**Lab Experiment 3**](Lab_Experiment_3/README.md) • [`Lab_Experiment_3/`](Lab_Experiment_3/) |
+| **Lab 3** | **Analyze Synchronization Mechanisms** | Race Conditions, Critical Section, Hardware Atomic, POSIX Semaphore, Lock, Barrier | 10M shared increments; **Hardware Atomics 2.0× faster than Critical & Locks** (0.181s vs. 0.362s/0.376s at 8T); 81.44% data loss in race updates | [**Lab Experiment 3**](Lab_Experiment_3/README.md) • [`Lab_Experiment_3/`](Lab_Experiment_3/) |
 | **Lab 4** | **Cache Coherence (MSI/MESI/MOESI) & NUMA Performance** | Snooping Simulator, False Sharing (Adjacent vs Padded), NUMA Sweeps | **DRAM writebacks eliminated via MOESI Owned state**; **118× speedup via 64B cache line padding**; **23.75 GB/s NUMA sweep** | [**Lab Experiment 4**](Lab_Experiment_4/README.md) • [`Lab_Experiment_4/`](Lab_Experiment_4/) |
 
 ---
@@ -69,7 +69,7 @@ flowchart TD
 | :--- | :--- | :---: | :---: | :---: |
 | **Lab 1: Matrix Multiplication** | $4000 \times 4000$ Matrix Multiplication ($C = A \times B$) | Sequential CPU: `244.120 s` | CUDA GPU: **`0.211 s`** | **1,155.63× Acceleration** |
 | **Lab 2: Multithreaded Sum** | $1,000,000,000$ ($10^9$) Numerical Iterations | Sequential CPU: `1.418 s` | 16-Thread OpenMP: **`0.136 s`** | **10.41× Speedup** |
-| **Lab 3: Concurrency Control** | $10,000,000$ ($10^7$) Contended Shared Increments | OpenMP Lock: `2.451 s` (8T) | Hardware Atomic: **`0.187 s`** (8T) | **13.13× Higher Throughput** |
+| **Lab 3: Concurrency Control** | $10,000,000$ ($10^7$) Contended Shared Increments | OpenMP Lock: `0.376 s` (8T) | Hardware Atomic: **`0.181 s`** (8T) | **2.08× Higher Throughput** |
 | **Lab 4: Cache Coherence & NUMA** | $100,000,000$ ($10^8$) Increments + 512 MB Sweep | Adjacent (False Sharing): `0.022 s` | 64B Padded Layout: **`0.012 s`** | **1.85× False Sharing Mitigation** (20.33 GB/s NUMA Sweep) |
 
 ---
@@ -112,21 +112,23 @@ PGC_Lab/
 │           ├── omp_critical.c, omp_barrier.c           # Critical section & barrier synchronization
 │           └── omp_perf.c                              # Scalability micro-benchmark (1 to 16 threads)
 │
-├── Lab_Experiment_3/                                   # Lab 3: OpenMP Synchronization & Concurrency
+├── Lab_Experiment_3/                                   # Lab 3: Synchronization Mechanisms in Parallel Programs
 │   ├── README.md                                       # Synchronization & Contention Benchmark Report
 │   ├── .gitignore                                      # Build artifact exclusions
-│   ├── graphs/                                         # Heatmaps, overhead growth & throughput charts
-│   ├── images/                                         # Empirical execution screenshots from laboratory VM
+│   ├── docs/
+│   │   └── Exp_3_Synchronization_Mechanisms.pdf        # Official syllabus laboratory manual
+│   ├── graphs/                                         # Dashboard & contention overhead plots
+│   ├── images/                                         # 7 authentic laboratory execution screenshots
 │   ├── scripts/
-│   │   └── generate_charts.py                          # Multi-metric comparative chart generator
+│   │   └── generate_charts.py                          # Performance dashboard generator
 │   └── src/
-│       ├── Makefile                                    # Automated GCC build rules
-│       ├── race.c                                      # Unsynchronized data race demonstration
-│       ├── critical.c                                  # Compiler critical section mutual exclusion
-│       ├── atomic.c                                    # Hardware atomic instruction benchmark
-│       ├── barrier.c                                   # Two-phase barrier synchronization
-│       ├── semaphore.c                                 # OpenMP runtime mutex/lock primitive
-│       └── compare_sync.c                              # Automated comparative benchmark suite
+│       ├── Makefile                                    # Automated build configuration
+│       ├── race.c                                      # Program 1: Unsynchronized race condition
+│       ├── critical.c                                  # Program 2: OpenMP critical section
+│       ├── atomic.c                                    # Program 3: Hardware atomic operation
+│       ├── barrier.c                                   # Program 4: Phased barrier synchronization
+│       ├── semaphore.c                                 # Program 5: POSIX semaphore synchronization
+│       └── compare_sync.c                              # Program 6: Multi-thread comparison benchmark suite
 │
 └── Lab_Experiment_4/                                   # Lab 4: Cache Coherence Protocols & NUMA
     ├── README.md                                       # Microarchitectural Report & Protocol Analysis
